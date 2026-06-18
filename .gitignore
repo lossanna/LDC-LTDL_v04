@@ -4,3 +4,6 @@
 .Ruserdata
 *.RData
 RData/
+Treatment_Info_R.csv
+01_Treatment-info_v000.csv
+ldc-data-2026-06-01
