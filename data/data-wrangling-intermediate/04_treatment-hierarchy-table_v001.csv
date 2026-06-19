@@ -1,0 +1,164 @@
+Trt_Type_Major,Trt_Type_Sub,Treatment_Type
+Biological Control,Animal Control,Animal Control: Horse Gather
+Biological Control,Animal Control,Insect and Rodent Control
+Biological Control,Animal Control,Insect and Rodent Control: Biological Control
+Biological Control,Animal Control,Insect and Rodent Control: Ground Application of Control Substance
+Biological Control,Biological Control,Biological Control: Biological Fence
+Biological Control,Biological Control,Biological Control: Plant Control
+Biological Control,Grazing,Grazing Management
+Biological Control,Grazing,Grazing Management: Livestock Trample
+Biological Control,Grazing,Grazing Management: Plant Control
+Closure/Exclosure,Closure,"Closures (OHV, Livestock, Area): Area Closure"
+Closure/Exclosure,Closure,"Closures (OHV, Livestock, Area): Livestock Closure"
+Closure/Exclosure,Closure,"Closures (OHV, Livestock, Area): OHV Closure"
+Closure/Exclosure,Closure,"Closures (OHV, Livestock, Area): Protective Fence"
+Closure/Exclosure,Closure,"Closures (OHV, Livestock, Area): Signs"
+Closure/Exclosure,Exclosure,Exclosure
+Closure/Exclosure,Exclosure,Exclosure: Experimental Seed
+Closure/Exclosure,Exclosure,Exclosure: Fence
+Cultural Protection,Cultural Protection,Cultural Protection (Stabilization/Patrol)
+Cultural Protection,Cultural Protection,Cultural Protection (Stabilization/Patrol): Cultural Site Patrol
+Cultural Protection,Cultural Protection,Cultural Protection (Stabilization/Patrol): Cultural Site Stabilization
+Cultural Protection,Cultural Protection,Cultural Protection (Stabilization/Patrol): Cultural Survey
+Facilities/Fences/Roads,Facilities/Improvements,Facilities/Improvements
+Facilities/Fences/Roads,Facilities/Improvements,Facilities/Improvements: Construction of Reservoir
+Facilities/Fences/Roads,Facilities/Improvements,Facilities/Improvements: Habitat Structures
+Facilities/Fences/Roads,Facilities/Improvements,Facilities/Improvements: Road Repair/Maintenance
+Facilities/Fences/Roads,Fence/Cattle Guard,Protective Fence / Gate
+Facilities/Fences/Roads,Fence/Cattle Guard,Protective Fence / Gate: Removal
+Facilities/Fences/Roads,Fence/Cattle Guard,Protective Fence / Gate: Temporary
+Facilities/Fences/Roads,Fence/Cattle Guard,Repair Fence / Gate
+Facilities/Fences/Roads,Fence/Cattle Guard,Repair Fence / Gate: Permanent
+Facilities/Fences/Roads,Road/Trail,Road / Trail Water Diversion
+Facilities/Fences/Roads,Road/Trail,Road / Trail Water Diversion: Ditching
+Facilities/Fences/Roads,Road/Trail,Road / Trail Water Diversion: Water Bars
+Herbicide/Weeds/Chemical,Chemical,Chemical: Fertilization
+Herbicide/Weeds/Chemical,Herbicide,Herbicide Application
+Herbicide/Weeds/Chemical,Herbicide,Herbicide Application: Brush/Tree Control
+Herbicide/Weeds/Chemical,Herbicide,Herbicide Application: Target Unknown
+Herbicide/Weeds/Chemical,Herbicide,Noxious Weeds: Weed Control - Herbicide Application
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds: Biological Control
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds: Weed Control
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds: Weed Control - Manual
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds: Weed Control - Mechanical
+Herbicide/Weeds/Chemical,Weeds,Noxious Weeds: Weed Detection
+Other,Experimental Plots,Experimental Plots: Multiple Treatments
+Other,Experimental Plots,"Experimental Plots: Multiple Treatments, no seeding"
+Other,General Rehabilitation,General Rehabilitation: Dozer Line Rehabilitation
+Other,General Rehabilitation,General Rehabilitation: Fire Rehabilitation
+Other,General Rehabilitation,General Rehabilitation: Natural Regeneration
+Other,General Rehabilitation,General Rehabilitation: Road/Trail Reclamation
+Other,General Site Preparation,General Site Preparation
+Other,General Site Preparation,General Site Preparation: Preparing Site For Ground Seeding
+Other,General Treatment,General Treatment: Hand Treatment
+Other,General Treatment,General Treatment: Mechanical Treatment
+Other,General Treatment,General Treatment: Vegetation Removal
+Other,Irrigation,Irrigation: Drip
+Other,Other Treatment,Other Treatment: Herbivory Protection
+Other,Other Treatment,Other Treatment: Law Enforcement Patrol
+Other,Other Treatment,Other Treatment: Monitoring
+Other,Other Treatment,Other Treatment: Other (See Notes)
+Other,Other Treatment,Other Treatment: Planning (Plan Prep/Project Management)
+Other,Other Treatment,Other Treatment: Protective Tubing
+Other,Other Treatment,Other Treatment: Seed Collection and Grow Out
+Other,Other Treatment,Other Treatment: Site Cleanup
+Other,Other Treatment,Other Treatment: Survey
+Other,Other Treatment,Other Treatment: Windbreak
+Other,Water Treatment,Water Treatment: Stream Restoration
+Other,Water Treatment,Water Treatment: Wetland Rehabilitation: Revegetation
+Prescribed Burn,Prescribed Burn,Prescribed Burn
+Prescribed Burn,Prescribed Burn,Prescribed Burn: Broadcast Burn
+Prescribed Burn,Prescribed Burn,Prescribed Burn: Jackpot
+Prescribed Burn,Prescribed Burn,Prescribed Burn: Pile Burn
+Seeding,Aerial Seeding,Aerial Seeding
+Seeding,Aerial Seeding,Aerial Seeding: Fixed Wing
+Seeding,Aerial Seeding,Aerial Seeding: Rotor Wing
+Seeding,Drill Seeding,Ground Seeding: Drill
+Seeding,Greenstrip,Greenstrip
+Seeding,Greenstrip,Greenstrip: Aerial Seeding
+Seeding,Greenstrip,Greenstrip: Drill Seeding
+Seeding,Greenstrip,Greenstrip: Ground Seeding
+Seeding,Ground Seeding,Ground Seeding
+Seeding,Ground Seeding,Ground Seeding: ATV Broadcast
+Seeding,Ground Seeding,Ground Seeding: Broadcast
+Seeding,Ground Seeding,Ground Seeding: Dribble
+Seeding,Ground Seeding,Ground Seeding: Hand Broadcast
+Seeding,Ground Seeding,Ground Seeding: Hand Planting
+Seeding,Ground Seeding,Ground Seeding: Imprinting
+Seeding,Ground Seeding,Ground Seeding: Seed Mats
+Seeding,Seeding,Seeding
+Seeding,Seedling Planting,Seedling Planting (Shrub/Tree)
+Seeding,Seedling Planting,Seedling Planting (Shrub/Tree): Hand Planting
+Seeding,Seedling Planting,Seedling Planting (Shrub/Tree): Mechanical Planting
+Seeding,Transplanting,Transplanting
+Seeding,Transplanting,Transplanting: Willow
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting)
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Aerial Mulching
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Check Dams / Retention Dams
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Contour Log Felling
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Erosion Control Structures
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Gully Plugs
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Hand Mulching
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Hydro Mulching
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Log Erosion Barriers
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Matting / Watershed Cover / Armoring
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Mechanical Cover
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Mechanical Mulching
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Mulching (Unknown Method)
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Ripping / Contour furrows
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Road Removal
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Silt Fences
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Snag Felling
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Straw Bales / Waddles
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Stream Realignment
+Soil Stabilization,Soil Stabilization,Soil Stabilization (other than seeding/planting): Watershed Structures
+Vegetation/Soil Manipulation,Slash Treatment,Slash Treatment: Slash disposal
+Vegetation/Soil Manipulation,Slash Treatment,Slash Treatment: Slash piling
+Vegetation/Soil Manipulation,Slash Treatment,Slash Treatment: Slash scattering
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Chaining
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Clearing (Dozer)
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Contour Furrowing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Contour Plowing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Cultipacking
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Discing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Grinder
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Hand Raking
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Harrowing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Harrowing: ATV
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Mechanical Cultivation
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Plowing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Railing
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Ripping
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Rollerchopping
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Rolling
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Scalping
+Vegetation/Soil Manipulation,Soil Disturbance,Soil Disturbance: Scarification
+Vegetation/Soil Manipulation,Timber,Timber: Clear Cut
+Vegetation/Soil Manipulation,Timber,Timber: Clear Cut - Aerial Yarding
+Vegetation/Soil Manipulation,Timber,Timber: Clear Cut - Ground Yarding
+Vegetation/Soil Manipulation,Timber,Timber: Selective Cut - Aerial Yarding
+Vegetation/Soil Manipulation,Timber,Timber: Selective Cut - Ground Yarding
+Vegetation/Soil Manipulation,Timber,Timber: Timber Harvest
+Vegetation/Soil Manipulation,Timber,Timber: Timber Salvage
+Vegetation/Soil Manipulation,Timber,Timber: Yarding
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree Hazard Removal
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree Hazard Removal: Felling of Hazard Trees
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree Hazard Removal: Removal of Debris
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Lop and Scatter
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Manual
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Mechanical
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Pinyon Juniper Removal
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Pinyon Juniper Removal - Hand Cutting
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Pinyon Juniper Removal - Mechanical Cutting
+Vegetation/Soil Manipulation,Vegetation Disturbance,Tree/Brush Control: Thin and Pile
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Chipping
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Mastication
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Mechanical Pile
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Mechanical Thinning
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Mowing
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Ricking
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Spread Chips
+Vegetation/Soil Manipulation,Vegetation Disturbance,Vegetation Disturbance: Thinning
