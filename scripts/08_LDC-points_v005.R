@@ -1,7 +1,8 @@
 # Created: 2026-06-24
 # Updated: 2026-06-24
 
-# Purpose: Create LDC points v005, which is groups of 30+ points per treatment.
+# Purpose: Create LDC points v005, which is groups of 30+ points per treatment,
+#   based on LDC points v004.
 
 
 library(tidyverse)
