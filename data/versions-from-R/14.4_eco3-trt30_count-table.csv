@@ -1,0 +1,43 @@
+EcoLvl1,EcoLvl2,EcoLvl3,Category,Trt_Type_Sub,n
+GREAT PLAINS,WEST-CENTRAL SEMIARID PRAIRIES,Northwestern Great Plains,"Treated, never burned",Prescribed Burn,52
+NORTH AMERICAN DESERTS,COLD DESERTS,Arizona/New Mexico Plateau,"Treated, never burned",Herbicide,50
+NORTH AMERICAN DESERTS,COLD DESERTS,Arizona/New Mexico Plateau,"Treated, never burned",Prescribed Burn,31
+NORTH AMERICAN DESERTS,COLD DESERTS,Arizona/New Mexico Plateau,"Treated, never burned",Soil Disturbance,42
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, never burned","Drill Seeding, Soil Disturbance",37
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, never burned",Prescribed Burn,33
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, never burned",Vegetation Disturbance,97
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, post-burn",Aerial Seeding,454
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, post-burn",Drill Seeding,122
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, post-burn",Ground Seeding,41
+NORTH AMERICAN DESERTS,COLD DESERTS,Central Basin and Range,"Treated, post-burn",Herbicide,94
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, never burned","Aerial Seeding, Soil Disturbance",60
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, never burned",Herbicide,45
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, never burned",Prescribed Burn,76
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, never burned",Soil Disturbance,35
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, never burned",Vegetation Disturbance,34
+NORTH AMERICAN DESERTS,COLD DESERTS,Colorado Plateaus,"Treated, post-burn",Aerial Seeding,64
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, never burned",Drill Seeding,77
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, never burned","Drill Seeding, Soil Disturbance",62
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, never burned",Herbicide,260
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, never burned",Prescribed Burn,160
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, never burned",Vegetation Disturbance,104
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn",Aerial Seeding,562
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn","Aerial Seeding, Drill Seeding",89
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn",Closure,151
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn",Drill Seeding,244
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn",Herbicide,355
+NORTH AMERICAN DESERTS,COLD DESERTS,Northern Basin and Range,"Treated, post-burn",Seedling Planting,56
+NORTH AMERICAN DESERTS,COLD DESERTS,Snake River Plain,"Treated, post-burn",Aerial Seeding,154
+NORTH AMERICAN DESERTS,COLD DESERTS,Snake River Plain,"Treated, post-burn","Aerial Seeding, Drill Seeding",77
+NORTH AMERICAN DESERTS,COLD DESERTS,Snake River Plain,"Treated, post-burn",Closure,87
+NORTH AMERICAN DESERTS,COLD DESERTS,Snake River Plain,"Treated, post-burn",Drill Seeding,43
+NORTH AMERICAN DESERTS,COLD DESERTS,Snake River Plain,"Treated, post-burn",Herbicide,33
+NORTH AMERICAN DESERTS,COLD DESERTS,Wyoming Basin,"Treated, never burned",Prescribed Burn,38
+NORTH AMERICAN DESERTS,WARM DESERTS,Chihuahuan Desert,"Treated, never burned",Herbicide,64
+NORTH AMERICAN DESERTS,WARM DESERTS,Mojave Basin and Range,"Treated, post-burn",Aerial Seeding,82
+NORTHWESTERN FORESTED MOUNTAINS,WESTERN CORDILLERA,Blue Mountains,"Treated, never burned",Herbicide,110
+NORTHWESTERN FORESTED MOUNTAINS,WESTERN CORDILLERA,Blue Mountains,"Treated, post-burn",Herbicide,44
+NORTHWESTERN FORESTED MOUNTAINS,WESTERN CORDILLERA,Middle Rockies,"Treated, never burned",Herbicide,35
+NORTHWESTERN FORESTED MOUNTAINS,WESTERN CORDILLERA,Southern Rockies,"Treated, never burned",Herbicide,77
+NORTHWESTERN FORESTED MOUNTAINS,WESTERN CORDILLERA,Southern Rockies,"Treated, never burned",Prescribed Burn,40
+TEMPERATE SIERRAS,UPPER GILA MOUNTAINS,Arizona/New Mexico Mountains,"Treated, never burned",Prescribed Burn,37
