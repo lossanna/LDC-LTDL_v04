@@ -1,8 +1,7 @@
 # Created: 2026-06-29
 # Updated: 2026-06-29
 
-# Purpose: Propensity score matching incorporating CETWI and SOLUS data with updated
-#   numbering from PSM 1 (results are the same as 13_propensity-score-matching-1.R).
+# Purpose: Run propensity score matching for all 42 models.
 
 # https://kosukeimai.github.io/MatchIt/articles/MatchIt.html
 
@@ -62,7 +61,7 @@ model01.psm <- matchit(
   ratio = 2
 )
 model01.psm
-summary(model01.psm) # 96 treated matched
+summary(model01.psm) # 97 treated matched
 
 # Diagnostic love plot
 model01.loveplot <- love.plot(model01.psm, stars = "std",           
@@ -161,7 +160,15 @@ model01.plot <- model01.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "1. Blue Mountains: Herbicide",
-       x = NULL)
+       x = NULL)  +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 97",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model01.plot
 
 
@@ -208,7 +215,6 @@ bal.plot(model02.psm, var = "CETWI", which = "both", type = "ecdf")
 bal.plot(model02.psm, var = "sandtotal_0_cm", which = "both", type = "ecdf")
 
 # Density plots
-plot(model02.psm, type = "density")
 bal.plot(model02.psm, which = "both")
 bal.plot(model02.psm, var = "BareSoil_FH", which = "both")
 bal.plot(model02.psm, var = "TotalFoliarCover", which = "both")
@@ -286,7 +292,15 @@ model02.plot <- model02.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "2. Blue Mountains: Post-burn herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 42",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model02.plot
 
 
@@ -399,7 +413,7 @@ model03.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 3, .before = term)
-model03.comp
+model03.comp # p < 0.001
 
 # Plot
 model03.plot <- model03.pred |>
@@ -413,7 +427,19 @@ model03.plot <- model03.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "3. Middle Rockies: Herbicide",
-       x = NULL)
+       x = NULL) +
+  geom_signif(
+    comparisons = list(c("Control", "Herbicide")),
+    annotations = c("***")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 33",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model03.plot
 
 
@@ -540,7 +566,15 @@ model04.plot <- model04.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "4. Southern Rockies: Herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 76",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model04.plot
 
 
@@ -650,7 +684,7 @@ model05.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 5, .before = term)
-model05.comp # p = 0.03
+model05.comp # p = 0.013
 
 # Plot
 model05.plot <- model05.pred |>
@@ -668,6 +702,14 @@ model05.plot <- model05.pred |>
   geom_signif(
     comparisons = list(c("Control", "Prescribed burn")),
     annotations = c("*")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 37",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model05.plot
 
@@ -784,7 +826,7 @@ model06.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 6, .before = term)
-model06.comp # p < 0.001
+model06.comp # p = 0.004
 
 # Plot
 model06.plot <- model06.pred |>
@@ -801,7 +843,15 @@ model06.plot <- model06.pred |>
        x = NULL) +
   geom_signif(
     comparisons = list(c("Control", "Prescribed burn")),
-    annotations = c("***")
+    annotations = c("**")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 51",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model06.plot
 
@@ -833,7 +883,7 @@ model07.psm <- matchit(
   ratio = 2
 )
 model07.psm
-summary(model07.psm) # 153 treated matched
+summary(model07.psm) # 154 treated matched
 
 # Diagnostic love plot
 model07.loveplot <- love.plot(model07.psm, stars = "std",           
@@ -918,7 +968,7 @@ model07.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 7, .before = term)
-model07.comp # p = 0.011
+model07.comp # p = 0.02
 
 # Plot
 model07.plot <- model07.pred |>
@@ -936,6 +986,14 @@ model07.plot <- model07.pred |>
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn aerial seeding")),
     annotations = c("**")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 154",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model07.plot
 
@@ -1060,7 +1118,15 @@ model08.plot <- model08.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "8. Snake River Plain: Post-burn aerial & drill seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 77",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model08.plot
 
 
@@ -1188,6 +1254,14 @@ model09.plot <- model09.pred |>
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn closure")),
     annotations = c("***")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 87",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model09.plot
 
@@ -1213,7 +1287,7 @@ model10.psm <- matchit(
   ratio = 2
 )
 model10.psm
-summary(model10.psm) # 36 treated matched
+summary(model10.psm) # 43 treated matched
 
 # Diagnostic love plot
 model10.loveplot <- love.plot(model10.psm, stars = "std",           
@@ -1298,7 +1372,7 @@ model10.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 10, .before = term)
-model10.comp
+model10.comp # p = 0.03
 
 # Plot
 model10.plot <- model10.pred |>
@@ -1312,7 +1386,19 @@ model10.plot <- model10.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "10. Snake River Plain: Post-burn drill seeding",
-       x = NULL)
+       x = NULL) +
+  geom_signif(
+    comparisons = list(c("Post-burn control", "Post-burn drill seeding")),
+    annotations = c("*")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 43",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model10.plot
 
 
@@ -1337,7 +1423,7 @@ model11.psm <- matchit(
   ratio = 2
 )
 model11.psm
-summary(model11.psm) # 28 treated matched
+summary(model11.psm) # 29 treated matched
 
 # Diagnostic love plot
 model11.loveplot <- love.plot(model11.psm, stars = "std",           
@@ -1436,7 +1522,15 @@ model11.plot <- model11.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "11. Snake River Plain: Post-burn herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 29",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model11.plot
 
 
@@ -1464,7 +1558,7 @@ model12.psm <- matchit(
   ratio = 2
 )
 model12.psm
-summary(model12.psm) # 82 treated matched
+summary(model12.psm) # 76 treated matched
 
 # Diagnostic love plot
 model12.loveplot <- love.plot(model12.psm, stars = "std",           
@@ -1563,7 +1657,15 @@ model12.plot <- model12.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "12. Northern Basin and Range: Drill seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 76",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model12.plot
 
 
@@ -1687,7 +1789,15 @@ model13.plot <- model13.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "13. Northern Basin and Range: Drill seeding & soil disturbance",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 61",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model13.plot
 
 
@@ -1811,7 +1921,15 @@ model14.plot <- model14.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "14. Northern Basin and Range: Herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 259",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model14.plot
 
 
@@ -1836,7 +1954,7 @@ model15.psm <- matchit(
   ratio = 2
 )
 model15.psm
-summary(model15.psm) # 158 treated matched
+summary(model15.psm) # 159 treated matched
 
 # Diagnostic love plot
 model15.loveplot <- love.plot(model15.psm, stars = "std",           
@@ -1935,7 +2053,15 @@ model15.plot <- model15.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "15. Northern Basin and Range: Prescribed burn",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 159",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model15.plot
 
 
@@ -1960,7 +2086,7 @@ model16.psm <- matchit(
   ratio = 2
 )
 model16.psm
-summary(model16.psm) # 105 treated matched
+summary(model16.psm) # 102 treated matched
 
 # Diagnostic love plot
 model16.loveplot <- love.plot(model16.psm, stars = "std",           
@@ -2045,7 +2171,7 @@ model16.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 16, .before = term)
-model16.comp # p = 0.003
+model16.comp # p < 0.001
 
 # Plot
 model16.plot <- model16.pred |>
@@ -2062,7 +2188,15 @@ model16.plot <- model16.pred |>
        x = NULL) +
   geom_signif(
     comparisons = list(c("Control", "Vegetation disturbance")),
-    annotations = c("**")
+    annotations = c("***")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 102",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model16.plot
 
@@ -2088,7 +2222,7 @@ model17.psm <- matchit(
   ratio = 2
 )
 model17.psm
-summary(model17.psm) # 542 treated matched
+summary(model17.psm) # 551 treated matched
 
 # Diagnostic love plot
 model17.loveplot <- love.plot(model17.psm, stars = "std",           
@@ -2187,7 +2321,15 @@ model17.plot <- model17.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "17. Northern Basin and Range: Post-burn aerial seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 551",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model17.plot
 
 
@@ -2311,7 +2453,15 @@ model18.plot <- model18.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "18. Northern Basin and Range: Post-burn aerial & drill seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 88",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model18.plot
 
 
@@ -2439,6 +2589,14 @@ model19.plot <- model19.pred |>
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn closure")),
     annotations = c("***")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 151",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model19.plot
 
@@ -2464,7 +2622,7 @@ model20.psm <- matchit(
   ratio = 2
 )
 model20.psm
-summary(model20.psm) # 217 treated matched
+summary(model20.psm) # 243 treated matched
 
 # Diagnostic love plot
 model20.loveplot <- love.plot(model20.psm, stars = "std",           
@@ -2563,7 +2721,15 @@ model20.plot <- model20.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "20. Northern Basin and Range: Post-burn drill seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 243",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model20.plot
 
 
@@ -2588,7 +2754,7 @@ model21.psm <- matchit(
   ratio = 2
 )
 model21.psm
-summary(model21.psm) # 370 treated matched
+summary(model21.psm) # 355 treated matched
 
 # Diagnostic love plot
 model21.loveplot <- love.plot(model21.psm, stars = "std",           
@@ -2673,7 +2839,7 @@ model21.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 21, .before = term)
-model21.comp
+model21.comp # p = 0.02
 
 # Plot
 model21.plot <- model21.pred |>
@@ -2687,7 +2853,19 @@ model21.plot <- model21.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "21. Northern Basin and Range: Post-burn herbicide",
-       x = NULL)
+       x = NULL) + 
+  geom_signif(
+    comparisons = list(c("Post-burn control", "Post-burn herbicide")),
+    annotations = c("*")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 355",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model21.plot
 
 
@@ -2797,7 +2975,7 @@ model22.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 22, .before = term)
-model22.comp # p = 0.03
+model22.comp # p = 0.003
 
 # Plot
 model22.plot <- model22.pred |>
@@ -2814,7 +2992,15 @@ model22.plot <- model22.pred |>
        x = NULL) + 
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn seedling planting")),
-    annotations = c("*")
+    annotations = c("**")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 56",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model22.plot
 
@@ -2942,7 +3128,15 @@ model23.plot <- model23.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "23. Central Basin and Range: Drill seeding & soil disturbance",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 36",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model23.plot
 
 
@@ -3066,7 +3260,15 @@ model24.plot <- model24.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "24. Central Basin and Range: Prescribed burn",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 31",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model24.plot
 
 
@@ -3091,7 +3293,7 @@ model25.psm <- matchit(
   ratio = 2
 )
 model25.psm
-summary(model25.psm) # 99 treated matched
+summary(model25.psm) # 97 treated matched
 
 # Diagnostic love plot
 model25.loveplot <- love.plot(model25.psm, stars = "std",           
@@ -3176,7 +3378,7 @@ model25.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 25, .before = term)
-model25.comp # p = 0.001
+model25.comp 
 
 # Plot
 model25.plot <- model25.pred |>
@@ -3191,9 +3393,13 @@ model25.plot <- model25.pred |>
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "25. Central Basin and Range: Vegetation disturbance",
        x = NULL) +
-  geom_signif(
-    comparisons = list(c("Control", "Vegetation disturbance")),
-    annotations = c("**")
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 97",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model25.plot
 
@@ -3219,7 +3425,7 @@ model26.psm <- matchit(
   ratio = 2
 )
 model26.psm
-summary(model26.psm) # 345 treated matched
+summary(model26.psm) # 367 treated matched
 
 # Diagnostic love plot
 model26.loveplot <- love.plot(model26.psm, stars = "std",           
@@ -3318,7 +3524,15 @@ model26.plot <- model26.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "26. Central Basin and Range: Post-burn aerial seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 367",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model26.plot
 
 
@@ -3343,7 +3557,7 @@ model27.psm <- matchit(
   ratio = 2
 )
 model27.psm
-summary(model27.psm) # 88 treated matched
+summary(model27.psm) # 120 treated matched
 
 # Diagnostic love plot
 model27.loveplot <- love.plot(model27.psm, stars = "std",           
@@ -3419,7 +3633,7 @@ model27.pred <- avg_predictions(
   by = "trt_control"
 ) |> 
   mutate(Model = 27, .before = trt_control)
-model27.pred # Control NS (not different from 0)
+model27.pred 
 
 # Estimation of average treatment effect
 model27.comp <- avg_comparisons(
@@ -3428,7 +3642,7 @@ model27.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 27, .before = term)
-model27.comp # p = 0.01
+model27.comp # p < 0.001
 
 # Plot
 model27.plot <- model27.pred |>
@@ -3446,7 +3660,15 @@ model27.plot <- model27.pred |>
        x = NULL) +
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn drill seeding")),
-    annotations = c("**")
+    annotations = c("***")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 120",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model27.plot
 
@@ -3472,7 +3694,7 @@ model28.psm <- matchit(
   ratio = 2
 )
 model28.psm
-summary(model28.psm) # 38 treated matched
+summary(model28.psm) # 41 treated matched
 
 # Diagnostic love plot
 model28.loveplot <- love.plot(model28.psm, stars = "std",           
@@ -3571,7 +3793,15 @@ model28.plot <- model28.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "28. Central Basin and Range: Post-burn ground seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 41",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model28.plot
 
 
@@ -3695,7 +3925,15 @@ model29.plot <- model29.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "29. Central Basin and Range: Post-burn herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 80",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model29.plot
 
 
@@ -3822,7 +4060,15 @@ model30.plot <- model30.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "30. Wyoming Basin: Prescribed burn",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 37",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model30.plot
 
 
@@ -3949,7 +4195,15 @@ model31.plot <- model31.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "31. Colorado Plateaus: Aerial seeding & soil disturbance",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 60",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model31.plot
 
 
@@ -3974,7 +4228,7 @@ model32.psm <- matchit(
   ratio = 2
 )
 model32.psm
-summary(model32.psm) # 47 treated matched
+summary(model32.psm) # 45 treated matched
 
 # Diagnostic love plot
 model32.loveplot <- love.plot(model32.psm, stars = "std",           
@@ -4073,7 +4327,15 @@ model32.plot <- model32.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "32. Colorado Plateaus: Herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 45",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model32.plot
 
 
@@ -4201,6 +4463,14 @@ model33.plot <- model33.pred |>
   geom_signif(
     comparisons = list(c("Control", "Prescribed burn")),
     annotations = c("*")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 76",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model33.plot
 
@@ -4226,7 +4496,7 @@ model34.psm <- matchit(
   ratio = 2
 )
 model34.psm
-summary(model34.psm) # 40 treated matched
+summary(model34.psm) # 35 treated matched
 
 # Diagnostic love plot
 model34.loveplot <- love.plot(model34.psm, stars = "std",           
@@ -4325,7 +4595,15 @@ model34.plot <- model34.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "34. Colorado Plateaus: Soil disturbance",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 35",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model34.plot
 
 
@@ -4449,7 +4727,15 @@ model35.plot <- model35.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "35. Colorado Plateaus: Vegetation disturbance",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 34",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model35.plot
 
 
@@ -4573,7 +4859,15 @@ model36.plot <- model36.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "36. Colorado Plateaus: Post-burn aerial seeding",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 58",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model36.plot
 
 
@@ -4601,7 +4895,7 @@ model37.psm <- matchit(
   ratio = 2
 )
 model37.psm
-summary(model37.psm) # 49 treated matched
+summary(model37.psm) # 47 treated matched
 
 # Diagnostic love plot
 model37.loveplot <- love.plot(model37.psm, stars = "std",           
@@ -4700,7 +4994,15 @@ model37.plot <- model37.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(x = NULL,
-       title = "37. AZ/NM Plateau: Herbicide")
+       title = "37. AZ/NM Plateau: Herbicide") +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 47",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model37.plot
 
 
@@ -4725,7 +5027,7 @@ model38.psm <- matchit(
   ratio = 2
 )
 model38.psm
-summary(model38.psm) # 28 treated matched
+summary(model38.psm) # 27 treated matched
 
 # Diagnostic love plot
 model38.loveplot <- love.plot(model38.psm, stars = "std",           
@@ -4824,7 +5126,15 @@ model38.plot <- model38.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "38. AZ/NM Plateau: Prescribed burn",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 27",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model38.plot
 
 
@@ -4849,7 +5159,7 @@ model39.psm <- matchit(
   ratio = 2
 )
 model39.psm
-summary(model39.psm) # 41 treated matched
+summary(model39.psm) # 42 treated matched
 
 # Diagnostic love plot
 model39.loveplot <- love.plot(model39.psm, stars = "std",           
@@ -4934,7 +5244,7 @@ model39.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 39, .before = term)
-model39.comp # p = 0.009
+model39.comp 
 
 # Plot
 model39.plot <- model39.pred |>
@@ -4948,10 +5258,14 @@ model39.plot <- model39.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "39. AZ/NM Plateau: Soil disturbance",
-       x = NULL) +
-  geom_signif(
-    comparisons = list(c("Control", "Soil disturbance")),
-    annotations = c("**")
+       x = NULL)  +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 42",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model39.plot
 
@@ -5086,6 +5400,14 @@ model40.plot <- model40.pred |>
   geom_signif(
     comparisons = list(c("Post-burn control", "Post-burn aerial seeding")),
     annotations = c("**")
+  ) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 65",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
   )
 model40.plot
 
@@ -5190,7 +5512,7 @@ model41.pred <- avg_predictions(
   by = "trt_control"
 ) |> 
   mutate(Model = 41, .before = trt_control)
-model41.pred # Herbicide NS (not different from 0)
+model41.pred # control NS (not different from 0)
 
 # Estimation of average treatment effect
 model41.comp <- avg_comparisons(
@@ -5213,7 +5535,15 @@ model41.plot <- model41.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(title = "41. Chihuahuan Desert: Herbicide",
-       x = NULL)
+       x = NULL) +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 64",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model41.plot
 
 
@@ -5244,7 +5574,7 @@ model42.psm <- matchit(
   ratio = 2
 )
 model42.psm
-summary(model42.psm) # 30 treated matched
+summary(model42.psm) # 29 treated matched
 
 # Diagnostic love plot
 model42.loveplot <- love.plot(model42.psm, stars = "std",
@@ -5343,7 +5673,15 @@ model42.plot <- model42.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(x = NULL,
-       title = "42. AZ/NM Mountains: Prescribed burn")
+       title = "42. AZ/NM Mountains: Prescribed burn") +
+  annotate(
+    "text",
+    x = Inf, y = Inf,
+    label = "italic(n) == 29",
+    parse = TRUE,
+    hjust = 1.5,
+    vjust = 25
+  )
 model42.plot
 
 
@@ -5353,19 +5691,19 @@ model42.plot
 
 # Matched data
 save(list = ls(pattern = "\\.matched$"), 
-     file = "RData/20.1_matched-data-2.RData")
+     file = "RData/15_matched-data.RData")
 
 # PSM
 save(list = ls(pattern = "\\.psm$"), 
-     file = "RData/20.1_PSM-2.RData")
+     file = "RData/15_PSM.RData")
 
 # G computation
 save(list = ls(pattern = "\\.pred$"), 
-     file = "RData/20.1_g-computation-2.RData")
+     file = "RData/15_g-computation.RData")
 
 # Average treatment effect
 save(list = ls(pattern = "\\.comp$"), 
-     file = "RData/20.1_average-treatment-effect-2.RData")
+     file = "RData/15_average-treatment-effect.RData")
 
 
 
