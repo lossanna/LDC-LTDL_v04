@@ -5691,19 +5691,19 @@ model42.plot
 
 # Matched data
 save(list = ls(pattern = "\\.matched$"), 
-     file = "RData/15_matched-data.RData")
+     file = "RData/15.1_matched-data.RData")
 
 # PSM
 save(list = ls(pattern = "\\.psm$"), 
-     file = "RData/15_PSM.RData")
+     file = "RData/15.1_PSM.RData")
 
 # G computation
 save(list = ls(pattern = "\\.pred$"), 
-     file = "RData/15_g-computation.RData")
+     file = "RData/15.1_g-computation.RData")
 
 # Average treatment effect
 save(list = ls(pattern = "\\.comp$"), 
-     file = "RData/15_average-treatment-effect.RData")
+     file = "RData/15.1_average-treatment-effect.RData")
 
 
 
@@ -6337,4 +6337,4 @@ dev.off()
 
 
 
-save.image("RData/15_propensity-score-matching.RData")
+save.image("RData/15.1_propensity-score-matching.RData")
