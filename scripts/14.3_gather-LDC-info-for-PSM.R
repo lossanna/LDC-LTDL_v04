@@ -1,10 +1,11 @@
 # Created: 2026-06-29
-# Updated: 2026-06-29
+# Updated: 2026-06-30
 
 # Purpose: Gather veg cover columns needed for propensity score matching (PSM)
 #   from LDC geoindicators data.
 
-# Same as 10.R script from Project v03.
+# Same as 10.R script from Project v03, except additional geoindicators.csv table is 
+#   written out.
 
 # To install terradactyl: remotes::install_github(repo = 'Landscape-Data-Commons/terradactyl')
 
@@ -153,7 +154,14 @@ ldc.010.psm <- ldc.010.raw |>
 
 # Write to CSV ------------------------------------------------------------
 
+# LDC points
 write_csv(ldc.010.psm,
   file = "data/versions-from-R/14.3_LDC-with-PSM-cols_v010.csv",
   na = ""
 )
+
+# geoindicators with corrected col names
+write_csv(geoindicators,
+          file = "data/versions-from-R/14.3_geoindicators.csv",
+          na = "")
+
