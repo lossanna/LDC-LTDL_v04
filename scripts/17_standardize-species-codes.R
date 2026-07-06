@@ -1,16 +1,23 @@
 # Created: 2026-06-30
-# Updated: 2026-07-02
+# Updated: 2026-07-06
 
-# Purpose: Standardize plant species names/codes.
+# Purpose: Standardize plant species names/codes, and assign cover values for all matched data.
+#   Include codes in geospecies with no LPI data (these species were found during the
+#   species inventory but not measured on the transect for LPI). Assign these species a 
+#   cover value of 0.5% to be able to calculate diversity later on.
+
+# devtools::install_github("landscape-data-commons/trex", build_vignettes = TRUE)
 
 library(tidyverse)
 library(foreign)
+library(terradactyl)
 
 # Load data ---------------------------------------------------------------
 
 load("RData/15.1_matched-data.RData")
 plants.db.raw <- read.dbf("data/raw/tblNationalPlants/tblNationalPlants.dbf")
 geospecies <- read_csv("data/versions-from-R/16_geospecies.csv")
+lpi <- read_csv("data/versions-from-R/16_data-lpi.csv")
 
 
 # Combine all matched data ------------------------------------------------
@@ -23,587 +30,233 @@ all.matched <- bind_rows(mget(ls(pattern = "\\.matched$")),
 # List of relevant species
 matched.species <- geospecies |> 
   filter(PrimaryKey %in% all.matched$PrimaryKey) |> 
-  select(Species, ScientificName, Duration, Woody, Lifeform, SpeciesKey, DatabaseKey) |> 
+  select(Species, ScientificName, Duration, Woody, Lifeform) |> 
   distinct(.keep_all = TRUE)
 
-#   Without SpeciesKey and DatabaseKey cols
-ms.sans.key <- matched.species |> 
-  select(-SpeciesKey, -DatabaseKey) |> 
-  distinct(.keep_all = TRUE)
-
-#   Code and scientific name only
-ms.code.sci <- matched.species |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
 
 
 # Data wrangling for National Plants DB -----------------------------------
 
-## Compile list of all possible codes (from any column) -------------------
-
-# NameCode is unique. Other columns (CurrentPLA, TaxonCode, and OriginalPu have
-#   code-like values).
-
-# Check if all NameCodes are included in other code columns
-setdiff(plants.db.raw$CurrentPLA, plants.db.raw$NameCode)
-setdiff(plants.db.raw$TaxonCode, plants.db.raw$NameCode)
-setdiff(plants.db.raw$OriginalPu, plants.db.raw$NameCode)
-
-codes.namecodes.missing1 <- plants.db.raw |> 
-  filter(CurrentPLA %in% setdiff(plants.db.raw$CurrentPLA, plants.db.raw$NameCode)) |> 
-  filter(!is.na(CurrentPLA))
-
-codes.namecodes.missing2 <- plants.db.raw |> 
-  filter(TaxonCode %in% setdiff(plants.db.raw$TaxonCode, plants.db.raw$NameCode)) |> 
-  filter(!is.na(TaxonCode))
-
-codes.namecodes.missing3 <- plants.db.raw |> 
-  filter(OriginalPu %in% setdiff(plants.db.raw$OriginalPu, plants.db.raw$NameCode)) |> 
-  filter(!is.na(OriginalPu))
-
-# Look for instances of these missing codes in matched.species
-matched.species |> 
-  filter(Species %in% c(codes.namecodes.missing1$CurrentPLA,
-                        codes.namecodes.missing2$TaxonCode,
-                        codes.namecodes.missing3$OriginalPu)) # all matched.species codes
-#                                       are included as NameCodes in plants database
-  
-
-## Narrow down to relevant codes ------------------------------------------
-
 # Narrow down to NameCodes that appear in matched.species
 plants.db <- plants.db.raw |> 
-  filter(NameCode %in% matched.species$Species)
+  filter(NameCode %in% matched.species$Species) |> 
+  rename(CurrentPLANTSCode = CurrentPLA,
+         GrowthHabitat = GrowthHabi,
+         GrowthHabitat_sub = GrowthHa_1)
 
 
-# Identify instances of multiple NameCode for the same scientific name
-plants.multiple.scientific <- count(plants.db, Scientific) |> 
+## Create crosswalk -------------------------------------------------------
+
+# Cols for grouping
+crosswalk1 <- plants.db |> 
+  select(NameCode, Scientific, CurrentPLANTSCode, GrowthHabitat, GrowthHabitat_sub, Duration,
+         Nonnative, Invasive) |> 
+  arrange(NameCode) |> 
+  arrange(CurrentPLANTSCode) 
+
+# Inspect rows with multiple same CurrentPLANTSCode
+multiple.codes.codes <- count(crosswalk1, CurrentPLANTSCode) |> 
   arrange(desc(n)) |> 
   filter(n > 1)
 
-# Narrow down to relevant names in matched data
-multiple.scientific <- plants.db |> 
-  filter(Scientific %in% intersect(matched.species$ScientificName, 
-                                   plants.multiple.scientific$Scientific)) |> 
-  filter(NameCode %in% matched.species$Species)
+multiple.codes <- crosswalk1 |> 
+  filter(CurrentPLANTSCode %in% multiple.codes.codes$CurrentPLANTSCode)
 
 
+### Example of multiple CurrentPLANTSCode: Lupin --------------------------
 
-# Explore relevant species ------------------------------------------------
+# This section is to demonstrate the situation of multiple CurrentPLANTSCode values
+#   that have different NameCodes, and how to handle them.
 
-# Multiple rows for same Species code
-ms.multiple.code.codes <- count(ms.code.sci, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
+# Example: LUPIN
+lupin <- multiple.codes |> 
+  filter(CurrentPLANTSCode == "LUPIN")
+lupin
 
-ms.multiple.code <- ms.code.sci |> 
-  filter(Species %in% ms.multiple.code.codes$Species) |> 
-  arrange(Species) 
-
-
-# Multiple codes for the same scientific name
-ms.multiple.sci.codes <- count(ms.code.sci, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) |> 
-  filter(!is.na(ScientificName))
-
-ms.multiple.sci <- ms.code.sci |> 
-  filter(ScientificName %in% ms.multiple.sci.codes$ScientificName) |> 
-  arrange(ScientificName)
+# Lupinus is both a genus and species (frustratingly, the species has no species name). 
+# When the scientific name is "Lupinus", we assume this refers to the species. However, 
+#   when there are qualifiers in parentheses (i.e., "annual forb") we assume that this 
+#   refers to individuals not identified to the species level.
+# Therefore, "Lupinus (annual forb)" should not be grouped with "Lupinus", but the
+#   CurrentPLANTSCode has all of them listed as "LUPIN". Normally, we would group
+#   by CurrentPLANTSCode to collapse species with multiple/former names into a single 
+#   group, but we do not want to do that in this instance.
+# Hence, NameCodes with parentheses in the scientific name usually refer to individuals
+#   not indentified to the species level, and should remain as a separate group.
 
 
+### Handle scientific names with parentheses ------------------------------
 
-# By model ----------------------------------------------------------------
+# Inspect scientific names with parentheses
+sci.parenth <- crosswalk1 |> 
+  filter(str_detect(Scientific, fixed("("))) # all of these are not identified to the species
+#       level, so their original NameCode should be retained
 
-## Northwest Forested Mountains / Western Cordillera ----------------------
+#   Change CurrentPLANTSCode to NameCode for scientific names with parentheses
+sci.parenth.fix <- sci.parenth |> 
+  mutate(CurrentPLANTSCode = NameCode)
 
-### 1. Blue Mountains: Herbicide ------------------------------------------
 
-# Join with geospecies
-model01.geospecies <- model01.matched |> 
-  left_join(geospecies)
+# Remove codes of those not identified to species level
+crosswalk2 <- crosswalk1 |> 
+  filter(!NameCode %in% sci.parenth$NameCode)
 
-# Create species list
-model01.species <- model01.geospecies |> 
-  select(Species, ScientificName) |> 
+#   Add back fixed version where CurrentPLANTSCode is NameCode
+crosswalk2 <- crosswalk2 |> 
+  bind_rows(sci.parenth.fix)
+
+
+# Ensure other cols are standardized for each CurrentPLANTSCode
+species.info <- crosswalk2 |> 
+  select(-NameCode, -Scientific) |> 
   distinct(.keep_all = TRUE)
 
-# Look for codes with multiple scientific names
-model01.multi.code.codes <- count(model01.species, Species) |> 
-  arrange(desc(n)) |> 
+#   Extract problem codes
+problem.codes.codes <- count(species.info, CurrentPLANTSCode) |> 
   filter(n > 1)
 
-model01.multi.code <- model01.species |> 
-  filter(Species %in% model01.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
+problem.codes <- crosswalk2 |> 
+  filter(CurrentPLANTSCode %in% problem.codes.codes$CurrentPLANTSCode)
 
-# Look for scientific names with multiple codes
-count(model01.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
+#   Apply fixes to problem codes
+# Erigeron tracyi is also called Erigeron colomexicanus; code is ERCO28
+# idk what Lepidium cf. montanum is, so we can just retain its original NameCode
+# POAG is the same as POPRP2, which is invasive in the lower 48
+problem.codes.fixed <- problem.codes |> 
+  filter(NameCode %in% c("ERITRA", "LEPCFMON", "POAG")) |> 
+  mutate(CurrentPLANTSCode = c("ERCO28", "LEPCFMON", "POPRP2"),
+         Nonnative = c("NATIVE", "NATIVE", "EXOTIC"),
+         Invasive = c(NA, NA, "INVASIVE"))
 
-# Save as modelxx.geospecies.fixed
-model01.geospecies.fixed <- model01.geospecies
+# Remove problem codes from crosswalk and add back fix
+crosswalk3 <- crosswalk2 |> 
+  filter(!NameCode %in% problem.codes.fixed$NameCode) |> 
+  bind_rows(problem.codes.fixed)
 
 
-### 2. Blue Mountains: Post-burn herbicide --------------------------------
+# Save final version
+crosswalk <- crosswalk3
 
-# Join with geospecies
-model02.geospecies <- model02.matched |> 
-  left_join(geospecies)
 
-# Create species list
-model02.species <- model02.geospecies |> 
-  select(Species, ScientificName) |> 
+
+# Apply crosswalk fix -----------------------------------------------------
+
+# Filter LPI data for primary keys in all.matched
+all.matched.lpi <- lpi |> 
+  filter(PrimaryKey %in% all.matched$PrimaryKey)
+
+# Rename Code col as NameCode
+all.matched.lpi <- all.matched.lpi |> 
+  rename(NameCode = Code)
+
+# Join crosswalk
+all.matched.lpi.joined <- all.matched.lpi |> 
+  left_join(crosswalk) 
+
+# Change names so pct_cover() function will work
+#   Example LPI data
+lpi_tall <- terradactyl::tall_lpi_sample 
+
+#   Inspect column names
+colnames(lpi_tall)
+colnames(all.matched.lpi.joined)
+
+#   Change differently named columns to match example LPI data
+all.matched.lpi.joined <- all.matched.lpi.joined |> 
+  rename(code = NameCode,
+         PointNbr = PointNumber,
+         RecKey = RecordKey,
+         LineLengthAmount = LineLength,
+         SpacingIntervalAmount = SpacingIntervalAmt,
+         PointLoc = PointLocation,
+         source = Source,
+         DBKey = DatabaseKey,
+         layer = Layer)
+
+
+
+# Recalculate LPI data ----------------------------------------------------
+
+# Recalculate cover
+lpi.recalculate1 <- pct_cover(lpi_tall = all.matched.lpi.joined,
+                              tall = TRUE, 
+                              hit = "any",
+                              indicator_variables = "CurrentPLANTSCode")
+
+# Drop 0s and rename cols
+lpi.recalculate2 <- lpi.recalculate1 |> 
+  filter(percent > 0) |> 
+  rename(CurrentPLANTSCode = indicator,
+         Cover_AH = percent) 
+
+# Save final version
+lpi.recalculate <- lpi.recalculate2
+
+
+
+# Create cover table for non-LPI species ----------------------------------
+
+# Apply crosswalk fix
+#   Filter geospecies for primary keys in all.matched
+all.matched.geospecies <- geospecies |> 
+  filter(PrimaryKey %in% all.matched$PrimaryKey)
+
+#   Rename Species col to NameCode
+all.matched.geospecies <- all.matched.geospecies |> 
+  rename(NameCode = Species) 
+
+#   Join crosswalk
+all.matched.geospecies.joined <- all.matched.geospecies |> 
+  left_join(crosswalk) 
+
+#   Collapse into groups via CurrentPLANTSCode
+all.matched.geospecies.fixed <- all.matched.geospecies.joined |> 
+  select(PrimaryKey, SpeciesCover_AH, CurrentPLANTSCode) |> 
   distinct(.keep_all = TRUE)
 
-# Look for codes with multiple scientific names
-count(model02.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
 
-# Look for scientific names with multiple codes
-count(model02.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
+# Narrow down to only plants with NA species cover (not included in LPI)
+all.matched.nonlpi <- all.matched.geospecies.fixed |> 
+  filter(is.na(SpeciesCover_AH))
 
-# Save as modelxx.geospecies.fixed
-model02.geospecies.fixed <- model02.geospecies
+# Assign 0.5% cover and rename col
+all.matched.nonlpi <- all.matched.nonlpi |> 
+  mutate(SpeciesCover_AH = 0.5) |> 
+  rename(Cover_AH = SpeciesCover_AH)
 
 
-### 3. Middle Rockies: Herbicide ------------------------------------------
 
-# Join with geospecies
-model03.geospecies <- model03.matched |> 
-  left_join(geospecies)
+# Combine cover data ------------------------------------------------------
 
-# Create species list
-model03.species <- model03.geospecies |> 
-  select(Species, ScientificName) |> 
+# Combine and add species info
+cover <- lpi.recalculate |> 
+  bind_rows(all.matched.nonlpi) 
+
+# Create df of species info with fixed codes
+species.info.fixed <- crosswalk |> 
+  select(-NameCode, -Scientific) |> 
   distinct(.keep_all = TRUE)
 
-# Look for codes with multiple scientific names
-model03.multi.code.codes <- count(model03.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
+# Add species info to cover
+cover <- cover |> 
+  left_join(species.info.fixed)
 
-model03.multi.code <- model03.species |> 
-  filter(Species %in% model03.multi.code.codes$Species) |> 
-  arrange(Species) # "Aster Species" vs. "Asteraceae"? Same for Astragalus, Carex,
-#         Castilleja, Erigeron, Phlox
-#   For all of these instances, the genus alone is a valid species, but there are also
-#     lots of other species in the genus, so the "_ species" entries could be refering
-#     to individuals not identified to the species level, and should therefore
-#     be considered different.
 
-#   Change code for "Aster species" to "ASTERspp" so it is different than ASTER,
-#     as well as other 5 relevant cases
-model03.geospecies.fixed <- model03.geospecies |> 
-  mutate(Species = case_when(
-    ScientificName == "Aster Species" ~ "ASTERspp",
-    ScientificName == "Astragalus species" ~ "ASTRAspp",
-    ScientificName == "Carex species" ~ "CAREXspp",
-    ScientificName == "Erigeron species" ~ "ERIGE2spp",
-    ScientificName == "Phlox species" ~ "PHLOXspp",
-    TRUE ~ Species
-  ))
+# Add to species cover data to all.matched --------------------------------
 
-# Look for scientific names with multiple codes
-count(model03.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
+all.matched.cover <- all.matched |> 
+  left_join(cover,
+            relationship = "many-to-many") # relationship is many-to-many because all primary
+#   keys in all.matched will have multiple rows in cover (many species), and rows in
+#   cover might match multiple rows in all.matched because there are multiple instances of
+#   the same primary key because the same point might be used in multiple models.
 
 
 
-### 4. Southern Rockies: Herbicide ----------------------------------------
+# Write to CSV ------------------------------------------------------------
 
-# Join with geospecies
-model04.geospecies <- model04.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model04.species <- model04.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model04.multi.code.codes <- count(model04.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model04.multi.code <- model04.species |> 
-  filter(Species %in% model04.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-count(model04.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
-
-# Save as modelxx.geospecies.fixed
-model04.geospecies.fixed <- model04.geospecies
-
-
-### 5. Southern Rockies: Prescribed burn ----------------------------------
-
-# Join with geospecies
-model05.geospecies <- model05.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model05.species <- model05.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model05.multi.code.codes <- count(model05.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model05.multi.code <- model05.species |> 
-  filter(Species %in% model05.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-model05.multi.sci.name <- count(model05.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model05.multi.sci <- model05.species |> 
-  filter(ScientificName %in% model05.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) # these are different varieties
-
-
-
-
-## Great Plains / West-Central Semiarid Prairies --------------------------
-
-### 6. Northwestern Great Plains: Prescribed burn -------------------------
-
-# Join with geospecies
-model06.geospecies <- model06.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model06.species <- model06.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model06.multi.code.codes <- count(model06.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model06.multi.code <- model06.species |> 
-  filter(Species %in% model06.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-count(model06.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
-
-
-## Cold Deserts -----------------------------------------------------------
-
-### 7. Snake River Plain: Post-burn aerial seeding ------------------------
-
-# Join with geospecies
-model07.geospecies <- model07.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model07.species <- model07.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model07.multi.code.codes <- count(model07.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model07.multi.code <- model07.species |> 
-  filter(Species %in% model07.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-model07.multi.sci.name <- count(model07.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model07.multi.sci <- model07.species |> 
-  filter(ScientificName %in% model07.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # half have an extra letter to denote they are perennial;
-#       idk I guess I will just leave this? Possibly they could be referring to different
-#       species across the ecoregion.
-
-
-### 8. Snake River Plain: Post-burn aerial & drill seeding ----------------
-
-# Join with geospecies
-model08.geospecies <- model08.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model08.species <- model08.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-count(model08.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
- 
-# Look for scientific names with multiple codes
-model08.multi.sci.name <- count(model08.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
- 
-model08.multi.sci <- model08.species |> 
-  filter(ScientificName %in% model08.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # this is the same situation as model 7, and I am just leaving it
- 
-
-### 9. Snake River Plain: Post-burn closure -------------------------------
- 
-# Join with geospecies
-model09.geospecies <- model09.matched |> 
-  left_join(geospecies)
- 
-# Create species list
-model09.species <- model09.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
- 
-# Look for codes with multiple scientific names
-count(model09.species, Species) |> 
-   arrange(desc(n)) |> 
-   filter(n > 1)
- 
-# Look for scientific names with multiple codes
-model09.multi.sci.name <- count(model09.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model09.multi.sci <- model09.species |> 
-  filter(ScientificName %in% model09.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # this is the same situation as model 7, and I am just leaving it
-
-
-### 10. Snake River Plain: Post-burn drill seeding ------------------------
-
-# Join with geospecies
-model10.geospecies <- model10.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model10.species <- model10.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-count(model10.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-# Look for scientific names with multiple codes
-model10.multi.sci.name <- count(model10.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model10.multi.sci <- model10.species |> 
-  filter(ScientificName %in% model10.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # this is the same situation as model 7 (sans ASTRA), and I am just leaving it
-
-
-### 11. Snake River Plain: Post-burn herbicide ----------------------------
-
-# Join with geospecies
-model11.geospecies <- model11.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model11.species <- model11.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-count(model11.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-# Look for scientific names with multiple codes
-count(model11.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) # none
-
-
-### 12. Northern Basin & Range: Drill seeding -----------------------------
-
-# Join with geospecies
-model12.geospecies <- model12.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model12.species <- model12.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model12.multi.code.codes <- count(model12.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model12.multi.code <- model12.species |> 
-  filter(Species %in% model12.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-model12.multi.sci.name <- count(model12.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model12.multi.sci <- model12.species |> 
-  filter(ScientificName %in% model12.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # same deal where half are marked perennial with P;
-#       just leaving this for now
-
-
-
-### 13. Northern Basin & Range: Drill seeding & soil disturbance ----------
-
-# Join with geospecies
-model13.geospecies <- model13.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model13.species <- model13.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model13.multi.code.codes <- count(model13.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model13.multi.code <- model13.species |> 
-  filter(Species %in% model13.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-model13.multi.sci.name <- count(model13.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model13.multi.sci <- model13.species |> 
-  filter(ScientificName %in% model13.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # one is marked with PF (for perennial forb, probably);
-#       just leaving this for now
-
-
-### 14. Northern Basin & Range: Herbicide ---------------------------------
-
-# Join with geospecies
-model14.geospecies <- model14.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model14.species <- model14.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model14.multi.code.codes <- count(model14.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model14.multi.code <- model14.species |> 
-  filter(Species %in% model14.multi.code.codes$Species) |> 
-  arrange(Species) # these refer to the same species; no fix needed
-
-# Look for scientific names with multiple codes
-model14.multi.sci.name <- count(model14.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model14.multi.sci <- model14.species |> 
-  filter(ScientificName %in% model14.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) # this actually needs a fix
-
-
-### 15. Northern Basin & Range: Prescribed burn ---------------------------
-
-# Join with geospecies
-model15.geospecies <- model15.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model15.species <- model15.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model15.multi.code.codes <- count(model15.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model15.multi.code <- model15.species |> 
-  filter(Species %in% model15.multi.code.codes$Species) |> 
-  arrange(Species) # LUPINPF is included here
-
-# Look for scientific names with multiple codes
-model15.multi.sci.name <- count(model15.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model15.multi.sci <- model15.species |> 
-  filter(ScientificName %in% model15.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName)
-
-
-### 16. Northern Basin & Range: Vegetation disturbance --------------------
-
-# Join with geospecies
-model16.geospecies <- model16.matched |> 
-  left_join(geospecies)
-
-# Create species list
-model16.species <- model16.geospecies |> 
-  select(Species, ScientificName) |> 
-  distinct(.keep_all = TRUE)
-
-# Look for codes with multiple scientific names
-model16.multi.code.codes <- count(model16.species, Species) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1)
-
-model16.multi.code <- model16.species |> 
-  filter(Species %in% model16.multi.code.codes$Species) |> 
-  arrange(Species) # LUPINPF included
-
-# Look for scientific names with multiple codes
-model16.multi.sci.name <- count(model16.species, ScientificName) |> 
-  arrange(desc(n)) |> 
-  filter(n > 1) 
-
-model16.multi.sci <- model16.species |> 
-  filter(ScientificName %in% model16.multi.sci.name$ScientificName) |> 
-  filter(!is.na(ScientificName)) |> 
-  arrange(ScientificName) 
-
-
-
-
-
-
-
+write_csv(all.matched.cover,
+          file = "data/versions-from-R/17_all-matched-data-with-species-cover_v012.csv",
+          na = "")
 
 save.image("RData/17_standardize-species-codes.RData")
