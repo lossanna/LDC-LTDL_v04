@@ -14,11 +14,12 @@ all.matched.cover <- read_csv("data/versions-from-R/17_all-matched-data-with-spe
 
 # Data wrangling ----------------------------------------------------------
 
-# Invasive species only
+# Invasive species only, and remove duplicate instances of primary keys
 invasive <- all.matched.cover |> 
-  filter(Invasive == "INVASIVE")
-
-
+  filter(Invasive == "INVASIVE") |> 
+  select(PrimaryKey, CurrentPLANTSCode, Cover_AH, Invasive) |> 
+  distinct(.keep_all = TRUE)
+  
 # Sum invasive cover by PrimaryKey
 invasive.summed <- invasive |> 
   group_by(PrimaryKey) |> 

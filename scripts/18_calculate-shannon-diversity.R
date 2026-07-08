@@ -13,6 +13,11 @@ all.matched.cover <- read_csv("data/versions-from-R/17_all-matched-data-with-spe
 
 # Calculate Shannon diversity ---------------------------------------------
 
+# Remove duplicate instances of primary keys
+cover <- all.matched.cover |> 
+  select(PrimaryKey, CurrentPLANTSCode, Cover_AH) |> 
+  distinct(.keep_all = TRUE)
+
 # Write function
 calculate_shannon <- function(df) {
   
@@ -38,7 +43,7 @@ calculate_shannon <- function(df) {
   
 
 # Run function
-all.diversity <- calculate_shannon(all.matched.cover)
+all.diversity <- calculate_shannon(cover)
 
 # Add back other cols
 all.matched.join <- all.matched.cover |> 
