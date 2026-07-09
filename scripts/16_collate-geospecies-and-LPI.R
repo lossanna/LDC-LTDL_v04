@@ -1,5 +1,5 @@
 # Created: 2026-06-30
-# Updated: 2026-07-02
+# Updated: 2026-07-09
 
 # Purpose: Collate Landscape Data Commons geospecies and LPI data from the   
 #   four batches of downloads into single table, and write new CSV.
@@ -67,8 +67,8 @@ geospecies <- geospecies |>
     SpeciesCover_AH_n = `AH Species Cover Count`,
     MeanSpeciesHgt = `Mean Species Height (cm)`,
     MeanSpeciesHgt_n = `Mean Species Height Count (n)`,
-    Woody = `Growth Habitat`,
-    Lifeform = `Growth Habitat Subcategory`,
+    GrowthHabit = `Growth Habitat`,
+    GrowthHabitSub = `Growth Habitat Subcategory`,
     SpeciesKey = `Species Key`,
     DatabaseKey = `Database Key`,
     DateLoaded = `Date Loaded in Database`
