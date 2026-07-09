@@ -386,4 +386,9 @@ write_csv(all.matched,
           file = "data/versions-from-R/17_all-matched-data_v012.csv",
           na = "")
 
+# crosswalk
+write_csv(crosswalk,
+          file = "data/versions-from-R/17_species-crosswalk.csv",
+          na = "")
+
 save.image("RData/17_standardize-species-codes.RData")
