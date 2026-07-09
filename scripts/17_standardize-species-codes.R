@@ -372,8 +372,14 @@ all.matched.cover <- all.matched |>
 
 # Write to CSV ------------------------------------------------------------
 
+# With cover
 write_csv(all.matched.cover,
           file = "data/versions-from-R/17_all-matched-data-with-species-cover_v012.csv",
+          na = "")
+
+# all.matched alone
+write_csv(all.matched,
+          file = "data/versions-from-R/17_all-matched-data_v012.csv",
           na = "")
 
 save.image("RData/17_standardize-species-codes.RData")
