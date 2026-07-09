@@ -331,7 +331,11 @@ all.matched.geospecies.fixed <- all.matched.geospecies.joined |>
 
 # Narrow down to only plants with NA species cover (not included in LPI)
 all.matched.nonlpi <- all.matched.geospecies.fixed |> 
-  filter(is.na(SpeciesCover_AH))
+  filter(is.na(SpeciesCover_AH)) 
+
+#   Remove any instances of PrimaryKey-Code already in LPI
+all.matched.nonlpi <- all.matched.nonlpi |> 
+  anti_join(lpi.recalculate2)
 
 # Assign 0.5% cover and rename col
 all.matched.nonlpi <- all.matched.nonlpi |> 
@@ -377,7 +381,7 @@ write_csv(all.matched.cover,
           file = "data/versions-from-R/17_all-matched-data-with-species-cover_v012.csv",
           na = "")
 
-# all.matched alone
+# all.matched alone (points only)
 write_csv(all.matched,
           file = "data/versions-from-R/17_all-matched-data_v012.csv",
           na = "")
