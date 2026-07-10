@@ -1,7 +1,9 @@
 # Created: 2026-07-08
-# Updated: 2026-07-09
+# Updated: 2026-07-10
 
-# Purpose: Identify prominent invasive species across ecoregions.
+# Purpose: Identify prominent species across ecoregions (invasive species or targets of
+#   land treatments). Find cover of these species for each LDC point/primary key.
+#   Also, recalculate functional group cover for each LDC point.
 
 
 library(tidyverse)
@@ -17,7 +19,7 @@ crosswalk <- read_csv("data/versions-from-R/17_species-crosswalk.csv")
 
 # Prepare LDC and geospecies data -----------------------------------------
 
-# LDc version for joining
+# LDC version for joining
 ldc.011 <- ldc.011.raw |> 
   select(EcoLvl3, Category, PrimaryKey) 
 
@@ -27,9 +29,12 @@ geospecies.join <- geospecies |>
   select(PrimaryKey, Species, ScientificName, SpeciesCover_AH, SpeciesCover_AH_n)
 
 
-# NW Forested Mts / Western Cordillera ------------------------------------
 
-## Blue Mountains ---------------------------------------------------------
+# Identify common species -------------------------------------------------
+
+## NW Forested Mts / Western Cordillera -----------------------------------
+
+### Blue Mountains --------------------------------------------------------
 
 # Species found in ecoregion
 blue.mts.species <- ldc.011 |> 
@@ -40,10 +45,11 @@ blue.mts.species <- ldc.011 |>
 blue.mts.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
-## Middle Rockies ---------------------------------------------------------
+### Middle Rockies --------------------------------------------------------
 
 # Species found in ecoregion
 m.rockies.species <- ldc.011 |> 
@@ -55,11 +61,11 @@ m.rockies.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 20) # BRTE
+  print(n = 30) # BRTE, Artemisia
 
 
 
-## Southern Rockies -------------------------------------------------------
+### Southern Rockies ------------------------------------------------------
 
 # Species found in ecoregion
 s.rockies.species <- ldc.011 |> 
@@ -71,15 +77,13 @@ s.rockies.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE
+  print(n = 30) # Artemisia
 
 
 
+## Great Plains / West-Central Semiarid Prairies --------------------------
 
-
-# Great Plains / West-Central Semiarid Prairies ---------------------------
-
-## Northwestern Great Plains ----------------------------------------------
+### Northwestern Great Plains ---------------------------------------------
 
 # Species found in ecoregion
 ngp.species <- ldc.011 |> 
@@ -90,13 +94,14 @@ ngp.species <- ldc.011 |>
 ngp.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 
-# Cold Deserts ------------------------------------------------------------
+## Cold Deserts -----------------------------------------------------------
 
-## Snake River Plain ------------------------------------------------------
+### Snake River Plain -----------------------------------------------------
 
 # Species found in ecoregion
 srp.species <- ldc.011 |> 
@@ -110,7 +115,7 @@ srp.species |>
   arrange(desc(sum_cover)) # BRTE
 
 
-## Northern Basin and Range -----------------------------------------------
+### Northern Basin and Range ----------------------------------------------
 
 # Species found in ecoregion
 nbr.species <- ldc.011 |> 
@@ -124,7 +129,7 @@ nbr.species |>
   arrange(desc(sum_cover)) # BRTE
 
 
-## Central Basin and Range ------------------------------------------------
+### Central Basin and Range -----------------------------------------------
 
 # Species found in ecoregion
 cbr.species <- ldc.011 |> 
@@ -138,7 +143,7 @@ cbr.species |>
   arrange(desc(sum_cover)) # BRTE
 
 
-## Wyoming Basin ----------------------------------------------------------
+### Wyoming Basin ---------------------------------------------------------
 
 # Species found in ecoregion
 wyb.species <- ldc.011 |> 
@@ -152,7 +157,7 @@ wyb.species |>
   arrange(desc(sum_cover)) # BRTE
 
 
-## Colorado Plateaus ------------------------------------------------------
+### Colorado Plateaus -----------------------------------------------------
 
 # Species found in ecoregion
 cop.species <- ldc.011 |> 
@@ -166,7 +171,7 @@ cop.species |>
   arrange(desc(sum_cover)) # BRTE
 
 
-## Arizona/New Mexico Plateau ---------------------------------------------
+### Arizona/New Mexico Plateau --------------------------------------------
 
 # Species found in ecoregion
 az.nm.plat.species <- ldc.011 |> 
@@ -182,9 +187,9 @@ az.nm.plat.species |>
 
 
 
-# Warm Deserts ------------------------------------------------------------
+## Warm Deserts -----------------------------------------------------------
 
-## Mojave Basin and Range -------------------------------------------------
+### Mojave Basin and Range ------------------------------------------------
 
 # Species found in ecoregion
 mojave.species <- ldc.011 |> 
@@ -198,7 +203,7 @@ mojave.species |>
   arrange(desc(sum_cover)) # BRRU2
 
 
-## Chihuahuan Desert ------------------------------------------------------
+### Chihuahuan Desert -----------------------------------------------------
 
 # Species found in ecoregion
 chihuahuan.species <- ldc.011 |> 
@@ -213,9 +218,9 @@ chihuahuan.species |>
 
 
 
-# Temperate Sierras / Upper Gila ------------------------------------------
+## Temperate Sierras / Upper Gila -----------------------------------------
 
-## Arizona/New Mexico Mountains -------------------------------------------
+### Arizona/New Mexico Mountains ------------------------------------------
 
 # Species found in ecoregion
 az.nm.mts.species <- ldc.011 |> 
@@ -230,8 +235,6 @@ az.nm.mts.species |>
 
 
 
-
-
 # List of primary keys ----------------------------------------------------
 
 # Primary keys only
@@ -242,7 +245,9 @@ primarykeys <- primarykeys$PrimaryKey
 
 
 
-# BRTE --------------------------------------------------------------------
+# Species of interest -----------------------------------------------------
+
+## BRTE -------------------------------------------------------------------
 
 # BRTE rows only
 brte <- all.matched.cover |> 
@@ -277,7 +282,7 @@ all.matched.brte |>
 
 
 
-# BRRU2 -------------------------------------------------------------------
+## BRRU2 ------------------------------------------------------------------
 
 # BRRU2 rows only
 brru2 <- all.matched.cover |> 
@@ -312,7 +317,7 @@ all.matched.brru2 |>
 
 
 
-# Prosopis ----------------------------------------------------------------
+## Prosopis ---------------------------------------------------------------
 
 # Prosopis codes
 prosopis.codes <- crosswalk |> 
@@ -329,7 +334,7 @@ prosopis <- prosopis |>
   group_by(PrimaryKey) |> 
   summarise(Prosopis_cover = sum(Cover_AH))
 
-# Plots without prosopis
+# Plots without Prosopis
 prosopis0 <- data.frame(
   PrimaryKey = primarykeys,
   Prosopis_cover = 0
@@ -350,8 +355,7 @@ all.matched.prosopis |>
 
 
 
-
-# Artemisia ---------------------------------------------------------------
+## Artemisia --------------------------------------------------------------
 
 # Artemisia codes
 artemisia.codes <- crosswalk |> 
@@ -368,7 +372,7 @@ artemisia <- artemisia |>
   group_by(PrimaryKey) |> 
   summarise(Artemisia_cover = sum(Cover_AH))
 
-# Plots without artemisia
+# Plots without Artemisia
 artemisia0 <- data.frame(
   PrimaryKey = primarykeys,
   Artemisia_cover = 0
@@ -389,10 +393,155 @@ all.matched.artemisia |>
 
 
 
+# Recalculate functional group cover --------------------------------------
+
+# Note that GrowthHabitSub2 collapses Tree, Succulent, and Subshrub all into Shrub
+#   category.
+
+# Create grouping column
+funct.cover <- all.matched.cover |> 
+  mutate(FunctionalGroup = paste(Duration, GrowthHabitSub2)) |> 
+  select(PrimaryKey, CurrentPLANTSCode, Cover_AH, FunctionalGroup) |> 
+  distinct(.keep_all = TRUE)
+
+unique(funct.cover$FunctionalGroup)
+
+
+## Annual forb ------------------------------------------------------------
+
+# Annual forb
+annual.forb <- funct.cover |> 
+  filter(FunctionalGroup == "Annual Forb") |> 
+  group_by(PrimaryKey) |> 
+  summarise(AnnForbCover_AH = sum(Cover_AH))
+
+# Plots with 0
+annual.forb0 <- data.frame(
+  PrimaryKey = primarykeys,
+  AnnForbCover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% annual.forb$PrimaryKey)
+
+# Combine
+annual.forb <- bind_rows(annual.forb, annual.forb0)
+
+
+## Annual grass -----------------------------------------------------------
+
+# Annual grass
+annual.gram <- funct.cover |> 
+  filter(FunctionalGroup == "Annual Graminoid") |> 
+  group_by(PrimaryKey) |> 
+  summarise(AnnGramCover_AH = sum(Cover_AH))
+
+# Plots with 0
+annual.gram0 <- data.frame(
+  PrimaryKey = primarykeys,
+  AnnGramCover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% annual.gram$PrimaryKey)
+
+# Combine
+annual.gram <- bind_rows(annual.gram, annual.gram0)
+
+
+## Perennial forb ---------------------------------------------------------
+
+# Perennial forb
+perennial.forb <- funct.cover |> 
+  filter(FunctionalGroup == "Perennial Forb") |> 
+  group_by(PrimaryKey) |> 
+  summarise(PerForbCover_AH = sum(Cover_AH))
+
+# Plots with 0
+perennial.forb0 <- data.frame(
+  PrimaryKey = primarykeys,
+  PerForbCover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% perennial.forb$PrimaryKey)
+
+# Combine
+perennial.forb <- bind_rows(perennial.forb, perennial.forb0)
+
+
+## Perennial grass --------------------------------------------------------
+
+# Perennial grass
+perennial.gram <- funct.cover |> 
+  filter(FunctionalGroup == "Perennial Graminoid") |> 
+  group_by(PrimaryKey) |> 
+  summarise(PerGramCover_AH = sum(Cover_AH))
+
+# Plots with 0
+perennial.gram0 <- data.frame(
+  PrimaryKey = primarykeys,
+  PerGramCover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% perennial.gram$PrimaryKey)
+
+# Combine
+perennial.gram <- bind_rows(perennial.gram, perennial.gram0)
+
+
+## Shrub ------------------------------------------------------------------
+
+# Shrub
+shrub <- funct.cover |> 
+  filter(FunctionalGroup == "Perennial Shrub") |> 
+  group_by(PrimaryKey) |> 
+  summarise(PerShrubCover_AH = sum(Cover_AH))
+
+# Plots with 0
+shrub0 <- data.frame(
+  PrimaryKey = primarykeys,
+  PerShrubCover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% shrub$PrimaryKey)
+
+# Combine
+shrub <- bind_rows(shrub, shrub0)
+
+
+
+## Combine groups ---------------------------------------------------------
+
+# Combine groups
+all.groups <- annual.forb |> 
+  left_join(annual.gram) |> 
+  left_join(perennial.forb) |> 
+  left_join(perennial.gram) |> 
+  left_join(shrub)
+
+#   Check for NAs
+apply(all.groups, 2, anyNA)
+
+# Add in all.matched cols
+all.matched.funct.cover <- all.matched |> 
+  left_join(all.groups)
+
+
+# Combine all -------------------------------------------------------------
+
+# Combine
+all.matched.species.funct <- all.matched.funct.cover |> 
+  left_join(all.matched.brte) |> 
+  left_join(all.matched.brru2) |> 
+  left_join(all.matched.prosopis) |> 
+  left_join(all.matched.artemisia)
+
+# Check for NAs
+apply(all.matched.species.funct, 2, anyNA)
+
+# Check for matching length with all.matched
+nrow(all.matched.species.funct) == nrow(all.matched)
+
+
+
 # Write to CSV ------------------------------------------------------------
 
-# BRTE
-write_csv(all.matched.brte,
-          file = "data/versions-from-R/19_BRTE-cover_all-models_v012.csv",
+write_csv(all.matched.species.funct,
+          file = "data/versions-from-R/19_species-of-interest-and-functional-group-cover_all-models_v012.csv",
           na = "")
 
+
+save.image("RData/19_calculate-species-of-interest-and-functional-group-cover.RData")
