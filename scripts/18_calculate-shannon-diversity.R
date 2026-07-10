@@ -1,5 +1,5 @@
 # Created: 2026-07-08
-# Updated: 2026-07-09
+# Updated: 2026-07-10
 
 # Purpose: Calculate Shannon diversity for each LDC point.
 
@@ -47,7 +47,7 @@ all.diversity <- calculate_shannon(cover)
 
 # Add back other cols
 all.matched.join <- all.matched.cover |> 
-  select(-CurrentPLANTSCode, -Cover_AH, -GrowthHabit, -GrowthHabitSub,
+  select(-CurrentPLANTSCode, -Cover_AH, -GrowthHabit, -GrowthHabitSub, -GrowthHabitSub2,
          -Duration, -Nonnative, -Invasive) |> 
   distinct(.keep_all = TRUE)
 
