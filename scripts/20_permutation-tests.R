@@ -1,5 +1,5 @@
 # Created: 2026-07-08
-# Updated: 2026-07-08
+# Updated: 2026-07-10
 
 # Purpose: Run permutation tests for functional group cover, Shannon diversity,
 #   and invasive species.
@@ -13,21 +13,15 @@ library(gridExtra)
 
 # Load data ---------------------------------------------------------------
 
-all.matched.diversity <- read_csv("data/versions-from-R/18_shannon-diversity_all-models.csv")
-all.matched.invasive <- read_csv("data/versions-from-R/19_invasive-cover_all-models.csv")
-geoindicators <- read_csv("data/versions-from-R/14.3_geoindicators.csv")
+all.matched.diversity <- read_csv("data/versions-from-R/18_shannon-diversity_all-models_v012.csv")
+all.matched.species.funct <- read_csv("data/versions-from-R/19_species-of-interest-and-functional-group-cover_all-models_v012.csv")
 
 
 # Data wrangling ----------------------------------------------------------
 
-# Combine diversity & invasive species df
+# Combine diversity & species/function group dfs
 all.matched <- all.matched.diversity |> 
-  left_join(all.matched.invasive)
-
-# Functional group cover cols from geoindicators
-funct.group <- geoindicators |> 
-  select(PrimaryKey, AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH,
-         ShrubCover_AH)
+  left_join(all.matched.species.funct)
 
 
 
@@ -40,12 +34,9 @@ funct.group <- geoindicators |>
 # Filter for model
 model01.matched <- all.matched |> 
   filter(Model == 1) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover,
+         AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH, PerShrubCover_AH) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
-
-# Join functional cover cols
-model01.matched <- model01.matched |> 
-  left_join(funct.group)
 
 #   pivot_longer() for cover & shannon cols
 model01.matched <- model01.matched |> 
@@ -63,9 +54,10 @@ model01.matched <- model01.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum",
+             indicators == "Artemisia_cover" ~ "Artemisia"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -74,7 +66,8 @@ model01.matched <- model01.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum",
+                                        "Artemisia")))
 
 # Calculate observed mean difference
 model01.diff <- model01.matched |> 
@@ -112,7 +105,7 @@ p_values01 <- model01.perm |>
   inner_join(model01.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values01 # p = 0.014 for shannon
+p_values01 # p = 0.002 for shannon
 
 # Boxplot
 model01.bp <- model01.matched |> 
@@ -126,7 +119,10 @@ model01.bp <- model01.matched |>
        title = "1. Blue Mountains: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  scale_x_discrete(
+    labels = c("Bromus tectorum" = expression(italic("Bromus tectorum")),
+               "Artemisia" = expression(italic("Artemisia")))) +
+  theme(plot.margin = margin(10, 10, 10, 10))
 model01.bp
 
 # Plot frequency distribution
@@ -209,35 +205,49 @@ model01.shannon <- model01.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Shannon diversity (*)") +
+       title = "Shannon diversity (**)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model01.shannon
 
-#   Invasive
-model01.invasive <- model01.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model01.brte <- model01.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model01.diff$obs_diff[model01.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model01.diff$obs_diff[model01.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model01.invasive
+model01.brte
+
+#   Artemisia
+model01.artemisia <- model01.perm |> 
+  filter(indicators == "Artemisia") |> 
+  ggplot(aes(x = mean_diff)) +
+  geom_histogram(fill = "lightblue2", color = "black") +
+  geom_vline(xintercept = model01.diff$obs_diff[model01.diff$indicators == "Artemisia"],
+             color = "red", linetype = "dashed", linewidth = 1) +
+  labs(x = "Difference in means",
+       y = "Frequency",
+       title = expression(italic("Artemisia"))) +
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+model01.artemisia
 
 # Combine plots
 grid.arrange(
   model01.bp, model01.annforb, model01.anngrass,
   model01.perforb, model01.pergrass, model01.shrub,
-  model01.shannon, model01.invasive,
+  model01.shannon, model01.brte, model01.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 
@@ -247,12 +257,9 @@ grid.arrange(
 # Filter for model
 model02.matched <- all.matched |> 
   filter(Model == 2) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover,
+         AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH, PerShrubCover_AH) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn herbicide")))
-
-# Join functional cover cols
-model02.matched <- model02.matched |> 
-  left_join(funct.group)
 
 #   pivot_longer() for cover & shannon cols
 model02.matched <- model02.matched |> 
@@ -270,9 +277,10 @@ model02.matched <- model02.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum",
+             indicators == "Artemisia_cover" ~ "Artemisia"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -281,7 +289,8 @@ model02.matched <- model02.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum",
+                                        "Artemisia")))
 
 # Calculate observed mean difference
 model02.diff <- model02.matched |> 
@@ -331,9 +340,13 @@ model02.bp <- model02.matched |>
   labs(y = "Cover (%)",
        x = NULL,
        title = "2. Blue Mountains: Post-burn herbicide") +
+  ylim(0, 165) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  scale_x_discrete(
+    labels = c("Bromus tectorum" = expression(italic("Bromus tectorum")),
+               "Artemisia" = expression(italic("Artemisia")))) +
+  theme(plot.margin = margin(10, 10, 10, 10))
 model02.bp
 
 # Plot frequency distribution
@@ -421,30 +434,44 @@ model02.shannon <- model02.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model02.shannon
 
-#   Invasive
-model02.invasive <- model02.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model02.brte <- model02.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model02.diff$obs_diff[model02.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model02.diff$obs_diff[model02.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model02.invasive
+model02.brte
+
+#   Artemisia
+model02.artemisia <- model02.perm |> 
+  filter(indicators == "Artemisia") |> 
+  ggplot(aes(x = mean_diff)) +
+  geom_histogram(fill = "lightblue2", color = "black") +
+  geom_vline(xintercept = model02.diff$obs_diff[model02.diff$indicators == "Artemisia"],
+             color = "red", linetype = "dashed", linewidth = 1) +
+  labs(x = "Difference in means",
+       y = "Frequency",
+       title = expression(italic("Artemisia"))) +
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+model02.artemisia
 
 # Combine plots
 grid.arrange(
   model02.bp, model02.annforb, model02.anngrass,
   model02.perforb, model02.pergrass, model02.shrub,
-  model02.shannon, model02.invasive,
+  model02.shannon, model02.brte, model02.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 
@@ -457,12 +484,9 @@ grid.arrange(
 # Filter for model
 model03.matched <- all.matched |> 
   filter(Model == 3) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover,
+         AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH, PerShrubCover_AH) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
-
-# Join functional cover cols
-model03.matched <- model03.matched |> 
-  left_join(funct.group)
 
 #   pivot_longer() for cover & shannon cols
 model03.matched <- model03.matched |> 
@@ -480,9 +504,10 @@ model03.matched <- model03.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum",
+             indicators == "Artemisia_cover" ~ "Artemisia"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -491,7 +516,8 @@ model03.matched <- model03.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum",
+                                        "Artemisia")))
 
 # Calculate observed mean difference
 model03.diff <- model03.matched |> 
@@ -543,7 +569,10 @@ model03.bp <- model03.matched |>
        title = "3. Middle Rockies: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  scale_x_discrete(
+    labels = c("Bromus tectorum" = expression(italic("Bromus tectorum")),
+               "Artemisia" = expression(italic("Artemisia")))) +
+  theme(plot.margin = margin(10, 10, 10, 10))
 model03.bp
 
 # Plot frequency distribution
@@ -631,30 +660,44 @@ model03.shannon <- model03.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model03.shannon
 
-#   Invasive
-model03.invasive <- model03.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model03.brte <- model03.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model03.diff$obs_diff[model03.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model03.diff$obs_diff[model03.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model03.invasive
+model03.brte
+
+#   Artemisia
+model03.artemisia <- model03.perm |> 
+  filter(indicators == "Artemisia") |> 
+  ggplot(aes(x = mean_diff)) +
+  geom_histogram(fill = "lightblue2", color = "black") +
+  geom_vline(xintercept = model03.diff$obs_diff[model03.diff$indicators == "Artemisia"],
+             color = "red", linetype = "dashed", linewidth = 1) +
+  labs(x = "Difference in means",
+       y = "Frequency",
+       title = expression(italic("Artemisia"))) +
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+model03.artemisia
 
 # Combine plots
 grid.arrange(
   model03.bp, model03.annforb, model03.anngrass,
   model03.perforb, model03.pergrass, model03.shrub,
-  model03.shannon, model03.invasive,
+  model03.shannon, model03.brte, model03.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 
@@ -667,12 +710,9 @@ grid.arrange(
 # Filter for model
 model04.matched <- all.matched |> 
   filter(Model == 4) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover,
+         AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH, PerShrubCover_AH) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
-
-# Join functional cover cols
-model04.matched <- model04.matched |> 
-  left_join(funct.group)
 
 #   pivot_longer() for cover & shannon cols
 model04.matched <- model04.matched |> 
@@ -690,9 +730,10 @@ model04.matched <- model04.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum",
+             indicators == "Artemisia_cover" ~ "Artemisia"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -701,7 +742,8 @@ model04.matched <- model04.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum",
+                                        "Artemisia")))
 
 # Calculate observed mean difference
 model04.diff <- model04.matched |> 
@@ -739,7 +781,7 @@ p_values04 <- model04.perm |>
   inner_join(model04.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values04
+p_values04 # p = 0.02 for Artemisia
 
 # Boxplot
 model04.bp <- model04.matched |> 
@@ -751,9 +793,18 @@ model04.bp <- model04.matched |>
   labs(y = "Cover (%)",
        x = NULL,
        title = "4. Southern Rockies: Herbicide") +
+   geom_signif(
+    y_position = 65,
+    xmin = 6.8,
+    xmax = 7.2, 
+    annotations = c("***")
+  ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  scale_x_discrete(
+    labels = c("Bromus tectorum" = expression(italic("Bromus tectorum")),
+               "Artemisia" = expression(italic("Artemisia")))) +
+  theme(plot.margin = margin(10, 10, 10, 10))
 model04.bp
 
 # Plot frequency distribution
@@ -841,30 +892,44 @@ model04.shannon <- model04.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model04.shannon
 
-#   Invasive
-model04.invasive <- model04.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model04.brte <- model04.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model04.diff$obs_diff[model04.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model04.diff$obs_diff[model04.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model04.invasive
+model04.brte
+
+#   Artemisia
+model04.artemisia <- model04.perm |> 
+  filter(indicators == "Artemisia") |> 
+  ggplot(aes(x = mean_diff)) +
+  geom_histogram(fill = "lightblue2", color = "black") +
+  geom_vline(xintercept = model04.diff$obs_diff[model04.diff$indicators == "Artemisia"],
+             color = "red", linetype = "dashed", linewidth = 1) +
+  labs(x = "Difference in means",
+       y = "Frequency",
+       title = expression(italic("Artemisia") ~ "(*)")) +
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+model04.artemisia
 
 # Combine plots
 grid.arrange(
   model04.bp, model04.annforb, model04.anngrass,
   model04.perforb, model04.pergrass, model04.shrub,
-  model04.shannon, model04.invasive,
+  model04.shannon, model04.brte, model04.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 
@@ -874,7 +939,7 @@ grid.arrange(
 # Filter for model
 model05.matched <- all.matched |> 
   filter(Model == 5) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -897,9 +962,9 @@ model05.matched <- model05.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -908,7 +973,7 @@ model05.matched <- model05.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model05.diff <- model05.matched |> 
@@ -960,7 +1025,7 @@ model05.bp <- model05.matched |>
        title = "5. Southern Rockies: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model05.bp
 
 # Plot frequency distribution
@@ -1048,25 +1113,25 @@ model05.shannon <- model05.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model05.shannon
 
-#   Invasive
-model05.invasive <- model05.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model05.brte <- model05.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model05.diff$obs_diff[model05.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model05.diff$obs_diff[model05.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model05.invasive
+model05.brte
 
 # Combine plots
 grid.arrange(
   model05.bp, model05.annforb, model05.anngrass,
   model05.perforb, model05.pergrass, model05.shrub,
-  model05.shannon, model05.invasive,
+  model05.shannon, model05.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -1087,7 +1152,7 @@ grid.arrange(
 # Filter for model
 model06.matched <- all.matched |> 
   filter(Model == 6) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -1110,9 +1175,9 @@ model06.matched <- model06.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1121,7 +1186,7 @@ model06.matched <- model06.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model06.diff <- model06.matched |> 
@@ -1173,7 +1238,7 @@ model06.bp <- model06.matched |>
        title = "6. Northwestern Great Plains: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model06.bp
 
 # Plot frequency distribution
@@ -1261,25 +1326,25 @@ model06.shannon <- model06.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model06.shannon
 
-#   Invasive
-model06.invasive <- model06.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model06.brte <- model06.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model06.diff$obs_diff[model06.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model06.diff$obs_diff[model06.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model06.invasive
+model06.brte
 
 # Combine plots
 grid.arrange(
   model06.bp, model06.annforb, model06.anngrass,
   model06.perforb, model06.pergrass, model06.shrub,
-  model06.shannon, model06.invasive,
+  model06.shannon, model06.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -1300,7 +1365,7 @@ grid.arrange(
 # Filter for model
 model07.matched <- all.matched |> 
   filter(Model == 7) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial seeding")))
 
 # Join functional cover cols
@@ -1323,9 +1388,9 @@ model07.matched <- model07.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1334,7 +1399,7 @@ model07.matched <- model07.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model07.diff <- model07.matched |> 
@@ -1406,7 +1471,7 @@ model07.bp <- model07.matched |>
   ylim(0, 160) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model07.bp
 
 # Plot frequency distribution
@@ -1494,25 +1559,25 @@ model07.shannon <- model07.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model07.shannon
 
-#   Invasive
-model07.invasive <- model07.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model07.brte <- model07.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model07.diff$obs_diff[model07.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model07.diff$obs_diff[model07.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model07.invasive
+model07.brte
 
 # Combine plots
 grid.arrange(
   model07.bp, model07.annforb, model07.anngrass,
   model07.perforb, model07.pergrass, model07.shrub,
-  model07.shannon, model07.invasive,
+  model07.shannon, model07.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -1527,7 +1592,7 @@ grid.arrange(
 # Filter for model
 model08.matched <- all.matched |> 
   filter(Model == 8) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial & drill seeding")))
 
 # Join functional cover cols
@@ -1550,9 +1615,9 @@ model08.matched <- model08.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1561,7 +1626,7 @@ model08.matched <- model08.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model08.diff <- model08.matched |> 
@@ -1613,7 +1678,7 @@ model08.bp <- model08.matched |>
        title = "8. Snake River Plain: Post-burn aerial & drill seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model08.bp
 
 # Plot frequency distribution
@@ -1701,25 +1766,25 @@ model08.shannon <- model08.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model08.shannon
 
-#   Invasive
-model08.invasive <- model08.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model08.brte <- model08.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model08.diff$obs_diff[model08.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model08.diff$obs_diff[model08.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model08.invasive
+model08.brte
 
 # Combine plots
 grid.arrange(
   model08.bp, model08.annforb, model08.anngrass,
   model08.perforb, model08.pergrass, model08.shrub,
-  model08.shannon, model08.invasive,
+  model08.shannon, model08.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -1734,7 +1799,7 @@ grid.arrange(
 # Filter for model
 model09.matched <- all.matched |> 
   filter(Model == 9) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn closure")))
 
 # Join functional cover cols
@@ -1757,9 +1822,9 @@ model09.matched <- model09.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1768,7 +1833,7 @@ model09.matched <- model09.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model09.diff <- model09.matched |> 
@@ -1839,7 +1904,7 @@ model09.bp <- model09.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model09.bp
 
 # Plot frequency distribution
@@ -1927,25 +1992,25 @@ model09.shannon <- model09.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model09.shannon
 
-#   Invasive
-model09.invasive <- model09.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model09.brte <- model09.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model09.diff$obs_diff[model09.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model09.diff$obs_diff[model09.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (**)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model09.invasive
+model09.brte
 
 # Combine plots
 grid.arrange(
   model09.bp, model09.annforb, model09.anngrass,
   model09.perforb, model09.pergrass, model09.shrub,
-  model09.shannon, model09.invasive,
+  model09.shannon, model09.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -1960,7 +2025,7 @@ grid.arrange(
 # Filter for model
 model10.matched <- all.matched |> 
   filter(Model == 10) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn drill seeding")))
 
 # Join functional cover cols
@@ -1983,9 +2048,9 @@ model10.matched <- model10.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1994,7 +2059,7 @@ model10.matched <- model10.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model10.diff <- model10.matched |> 
@@ -2052,7 +2117,7 @@ model10.bp <- model10.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model10.bp
 
 # Plot frequency distribution
@@ -2140,25 +2205,25 @@ model10.shannon <- model10.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model10.shannon
 
-#   Invasive
-model10.invasive <- model10.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model10.brte <- model10.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model10.diff$obs_diff[model10.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model10.diff$obs_diff[model10.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model10.invasive
+model10.brte
 
 # Combine plots
 grid.arrange(
   model10.bp, model10.annforb, model10.anngrass,
   model10.perforb, model10.pergrass, model10.shrub,
-  model10.shannon, model10.invasive,
+  model10.shannon, model10.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -2173,7 +2238,7 @@ grid.arrange(
 # Filter for model
 model11.matched <- all.matched |> 
   filter(Model == 11) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn herbicide")))
 
 # Join functional cover cols
@@ -2196,9 +2261,9 @@ model11.matched <- model11.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -2207,7 +2272,7 @@ model11.matched <- model11.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model11.diff <- model11.matched |> 
@@ -2259,7 +2324,7 @@ model11.bp <- model11.matched |>
        title = "11. Snake River Plain: Post-burn herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model11.bp
 
 # Plot frequency distribution
@@ -2347,25 +2412,25 @@ model11.shannon <- model11.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model11.shannon
 
-#   Invasive
-model11.invasive <- model11.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model11.brte <- model11.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model11.diff$obs_diff[model11.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model11.diff$obs_diff[model11.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model11.invasive
+model11.brte
 
 # Combine plots
 grid.arrange(
   model11.bp, model11.annforb, model11.anngrass,
   model11.perforb, model11.pergrass, model11.shrub,
-  model11.shannon, model11.invasive,
+  model11.shannon, model11.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -2383,7 +2448,7 @@ grid.arrange(
 # Filter for model
 model12.matched <- all.matched |> 
   filter(Model == 12) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Drill seeding")))
 
 # Join functional cover cols
@@ -2406,9 +2471,9 @@ model12.matched <- model12.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -2417,7 +2482,7 @@ model12.matched <- model12.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model12.diff <- model12.matched |> 
@@ -2488,7 +2553,7 @@ model12.bp <- model12.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model12.bp
 
 # Plot frequency distribution
@@ -2576,25 +2641,25 @@ model12.shannon <- model12.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model12.shannon
 
-#   Invasive
-model12.invasive <- model12.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model12.brte <- model12.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model12.diff$obs_diff[model12.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model12.diff$obs_diff[model12.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model12.invasive
+model12.brte
 
 # Combine plots
 grid.arrange(
   model12.bp, model12.annforb, model12.anngrass,
   model12.perforb, model12.pergrass, model12.shrub,
-  model12.shannon, model12.invasive,
+  model12.shannon, model12.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -2609,7 +2674,7 @@ grid.arrange(
 # Filter for model
 model13.matched <- all.matched |> 
   filter(Model == 13) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Drill seeding & soil disturbance")))
 
 # Join functional cover cols
@@ -2632,9 +2697,9 @@ model13.matched <- model13.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -2643,7 +2708,7 @@ model13.matched <- model13.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model13.diff <- model13.matched |> 
@@ -2701,7 +2766,7 @@ model13.bp <- model13.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model13.bp
 
 # Plot frequency distribution
@@ -2789,25 +2854,25 @@ model13.shannon <- model13.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model13.shannon
 
-#   Invasive
-model13.invasive <- model13.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model13.brte <- model13.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model13.diff$obs_diff[model13.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model13.diff$obs_diff[model13.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model13.invasive
+model13.brte
 
 # Combine plots
 grid.arrange(
   model13.bp, model13.annforb, model13.anngrass,
   model13.perforb, model13.pergrass, model13.shrub,
-  model13.shannon, model13.invasive,
+  model13.shannon, model13.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -2822,7 +2887,7 @@ grid.arrange(
 # Filter for model
 model14.matched <- all.matched |> 
   filter(Model == 14) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
 
 # Join functional cover cols
@@ -2845,9 +2910,9 @@ model14.matched <- model14.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -2856,7 +2921,7 @@ model14.matched <- model14.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model14.diff <- model14.matched |> 
@@ -2914,7 +2979,7 @@ model14.bp <- model14.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model14.bp
 
 # Plot frequency distribution
@@ -3002,25 +3067,25 @@ model14.shannon <- model14.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model14.shannon
 
-#   Invasive
-model14.invasive <- model14.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model14.brte <- model14.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model14.diff$obs_diff[model14.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model14.diff$obs_diff[model14.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model14.invasive
+model14.brte
 
 # Combine plots
 grid.arrange(
   model14.bp, model14.annforb, model14.anngrass,
   model14.perforb, model14.pergrass, model14.shrub,
-  model14.shannon, model14.invasive,
+  model14.shannon, model14.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -3035,7 +3100,7 @@ grid.arrange(
 # Filter for model
 model15.matched <- all.matched |> 
   filter(Model == 15) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -3058,9 +3123,9 @@ model15.matched <- model15.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -3069,7 +3134,7 @@ model15.matched <- model15.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model15.diff <- model15.matched |> 
@@ -3127,7 +3192,7 @@ model15.bp <- model15.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model15.bp
 
 # Plot frequency distribution
@@ -3215,25 +3280,25 @@ model15.shannon <- model15.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model15.shannon
 
-#   Invasive
-model15.invasive <- model15.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model15.brte <- model15.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model15.diff$obs_diff[model15.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model15.diff$obs_diff[model15.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model15.invasive
+model15.brte
 
 # Combine plots
 grid.arrange(
   model15.bp, model15.annforb, model15.anngrass,
   model15.perforb, model15.pergrass, model15.shrub,
-  model15.shannon, model15.invasive,
+  model15.shannon, model15.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -3248,7 +3313,7 @@ grid.arrange(
 # Filter for model
 model16.matched <- all.matched |> 
   filter(Model == 16) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Vegetation disturbance")))
 
 # Join functional cover cols
@@ -3271,9 +3336,9 @@ model16.matched <- model16.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -3282,7 +3347,7 @@ model16.matched <- model16.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model16.diff <- model16.matched |> 
@@ -3334,7 +3399,7 @@ model16.bp <- model16.matched |>
        title = "16. Northern Basin and Range: Vegetation disturbance") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model16.bp
 
 # Plot frequency distribution
@@ -3422,25 +3487,25 @@ model16.shannon <- model16.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model16.shannon
 
-#   Invasive
-model16.invasive <- model16.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model16.brte <- model16.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model16.diff$obs_diff[model16.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model16.diff$obs_diff[model16.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model16.invasive
+model16.brte
 
 # Combine plots
 grid.arrange(
   model16.bp, model16.annforb, model16.anngrass,
   model16.perforb, model16.pergrass, model16.shrub,
-  model16.shannon, model16.invasive,
+  model16.shannon, model16.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -3455,7 +3520,7 @@ grid.arrange(
 # Filter for model
 model17.matched <- all.matched |> 
   filter(Model == 17) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial seeding")))
 
 # Join functional cover cols
@@ -3478,9 +3543,9 @@ model17.matched <- model17.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -3489,7 +3554,7 @@ model17.matched <- model17.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model17.diff <- model17.matched |> 
@@ -3541,7 +3606,7 @@ model17.bp <- model17.matched |>
        title = "17. Northern Basin and Range: Post-burn aerial seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model17.bp
 
 # Plot frequency distribution
@@ -3629,25 +3694,25 @@ model17.shannon <- model17.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model17.shannon
 
-#   Invasive
-model17.invasive <- model17.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model17.brte <- model17.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model17.diff$obs_diff[model17.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model17.diff$obs_diff[model17.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model17.invasive
+model17.brte
 
 # Combine plots
 grid.arrange(
   model17.bp, model17.annforb, model17.anngrass,
   model17.perforb, model17.pergrass, model17.shrub,
-  model17.shannon, model17.invasive,
+  model17.shannon, model17.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -3662,7 +3727,7 @@ grid.arrange(
 # Filter for model
 model18.matched <- all.matched |> 
   filter(Model == 18) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial & drill seeding")))
 
 # Join functional cover cols
@@ -3685,9 +3750,9 @@ model18.matched <- model18.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -3696,7 +3761,7 @@ model18.matched <- model18.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model18.diff <- model18.matched |> 
@@ -3748,7 +3813,7 @@ model18.bp <- model18.matched |>
        title = "18. Northern Basin and Range: Post-burn aerial & drill seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model18.bp
 
 # Plot frequency distribution
@@ -3836,25 +3901,25 @@ model18.shannon <- model18.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model18.shannon
 
-#   Invasive
-model18.invasive <- model18.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model18.brte <- model18.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model18.diff$obs_diff[model18.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model18.diff$obs_diff[model18.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model18.invasive
+model18.brte
 
 # Combine plots
 grid.arrange(
   model18.bp, model18.annforb, model18.anngrass,
   model18.perforb, model18.pergrass, model18.shrub,
-  model18.shannon, model18.invasive,
+  model18.shannon, model18.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -3869,7 +3934,7 @@ grid.arrange(
 # Filter for model
 model19.matched <- all.matched |> 
   filter(Model == 19) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn closure")))
 
 # Join functional cover cols
@@ -3892,9 +3957,9 @@ model19.matched <- model19.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -3903,7 +3968,7 @@ model19.matched <- model19.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model19.diff <- model19.matched |> 
@@ -3974,7 +4039,7 @@ model19.bp <- model19.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model19.bp 
 
 # Plot frequency distribution
@@ -4062,25 +4127,25 @@ model19.shannon <- model19.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model19.shannon
 
-#   Invasive
-model19.invasive <- model19.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model19.brte <- model19.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model19.diff$obs_diff[model19.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model19.diff$obs_diff[model19.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (***)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model19.invasive
+model19.brte
 
 # Combine plots
 grid.arrange(
   model19.bp, model19.annforb, model19.anngrass,
   model19.perforb, model19.pergrass, model19.shrub,
-  model19.shannon, model19.invasive,
+  model19.shannon, model19.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -4095,7 +4160,7 @@ grid.arrange(
 # Filter for model
 model20.matched <- all.matched |> 
   filter(Model == 20) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn drill seeding")))
 
 # Join functional cover cols
@@ -4118,9 +4183,9 @@ model20.matched <- model20.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -4129,7 +4194,7 @@ model20.matched <- model20.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model20.diff <- model20.matched |> 
@@ -4187,7 +4252,7 @@ model20.bp <- model20.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model20.bp
 
 # Plot frequency distribution
@@ -4275,25 +4340,25 @@ model20.shannon <- model20.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model20.shannon
 
-#   Invasive
-model20.invasive <- model20.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model20.brte <- model20.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model20.diff$obs_diff[model20.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model20.diff$obs_diff[model20.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model20.invasive
+model20.brte
 
 # Combine plots
 grid.arrange(
   model20.bp, model20.annforb, model20.anngrass,
   model20.perforb, model20.pergrass, model20.shrub,
-  model20.shannon, model20.invasive,
+  model20.shannon, model20.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -4308,7 +4373,7 @@ grid.arrange(
 # Filter for model
 model21.matched <- all.matched |> 
   filter(Model == 21) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn herbicide")))
 
 # Join functional cover cols
@@ -4331,9 +4396,9 @@ model21.matched <- model21.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -4342,7 +4407,7 @@ model21.matched <- model21.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model21.diff <- model21.matched |> 
@@ -4394,7 +4459,7 @@ model21.bp <- model21.matched |>
        title = "21. Northern Basin and Range: Post-burn herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model21.bp
 
 # Plot frequency distribution
@@ -4482,25 +4547,25 @@ model21.shannon <- model21.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model21.shannon
 
-#   Invasive
-model21.invasive <- model21.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model21.brte <- model21.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model21.diff$obs_diff[model21.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model21.diff$obs_diff[model21.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model21.invasive
+model21.brte
 
 # Combine plots
 grid.arrange(
   model21.bp, model21.annforb, model21.anngrass,
   model21.perforb, model21.pergrass, model21.shrub,
-  model21.shannon, model21.invasive,
+  model21.shannon, model21.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -4515,7 +4580,7 @@ grid.arrange(
 # Filter for model
 model22.matched <- all.matched |> 
   filter(Model == 22) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn seedling planting")))
 
 # Join functional cover cols
@@ -4538,9 +4603,9 @@ model22.matched <- model22.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -4549,7 +4614,7 @@ model22.matched <- model22.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model22.diff <- model22.matched |> 
@@ -4607,7 +4672,7 @@ model22.bp <- model22.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model22.bp
 
 # Plot frequency distribution
@@ -4695,25 +4760,25 @@ model22.shannon <- model22.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model22.shannon
 
-#   Invasive
-model22.invasive <- model22.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model22.brte <- model22.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model22.diff$obs_diff[model22.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model22.diff$obs_diff[model22.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model22.invasive
+model22.brte
 
 # Combine plots
 grid.arrange(
   model22.bp, model22.annforb, model22.anngrass,
   model22.perforb, model22.pergrass, model22.shrub,
-  model22.shannon, model22.invasive,
+  model22.shannon, model22.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -4731,7 +4796,7 @@ grid.arrange(
 # Filter for model
 model23.matched <- all.matched |> 
   filter(Model == 23) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Drill seeding & soil disturbance")))
 
 # Join functional cover cols
@@ -4754,9 +4819,9 @@ model23.matched <- model23.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -4765,7 +4830,7 @@ model23.matched <- model23.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model23.diff <- model23.matched |> 
@@ -4823,7 +4888,7 @@ model23.bp <- model23.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model23.bp
 
 # Plot frequency distribution
@@ -4911,25 +4976,25 @@ model23.shannon <- model23.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model23.shannon
 
-#   Invasive
-model23.invasive <- model23.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model23.brte <- model23.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model23.diff$obs_diff[model23.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model23.diff$obs_diff[model23.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model23.invasive
+model23.brte
 
 # Combine plots
 grid.arrange(
   model23.bp, model23.annforb, model23.anngrass,
   model23.perforb, model23.pergrass, model23.shrub,
-  model23.shannon, model23.invasive,
+  model23.shannon, model23.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -4944,7 +5009,7 @@ grid.arrange(
 # Filter for model
 model24.matched <- all.matched |> 
   filter(Model == 24) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -4967,9 +5032,9 @@ model24.matched <- model24.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -4978,7 +5043,7 @@ model24.matched <- model24.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model24.diff <- model24.matched |> 
@@ -5030,7 +5095,7 @@ model24.bp <- model24.matched |>
        title = "24. Central Basin and Range: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model24.bp
 
 # Plot frequency distribution
@@ -5118,25 +5183,25 @@ model24.shannon <- model24.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model24.shannon
 
-#   Invasive
-model24.invasive <- model24.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model24.brte <- model24.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model24.diff$obs_diff[model24.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model24.diff$obs_diff[model24.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model24.invasive
+model24.brte
 
 # Combine plots
 grid.arrange(
   model24.bp, model24.annforb, model24.anngrass,
   model24.perforb, model24.pergrass, model24.shrub,
-  model24.shannon, model24.invasive,
+  model24.shannon, model24.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -5151,7 +5216,7 @@ grid.arrange(
 # Filter for model
 model25.matched <- all.matched |> 
   filter(Model == 25) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Vegetation disturbance")))
 
 # Join functional cover cols
@@ -5174,9 +5239,9 @@ model25.matched <- model25.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -5185,7 +5250,7 @@ model25.matched <- model25.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model25.diff <- model25.matched |> 
@@ -5237,7 +5302,7 @@ model25.bp <- model25.matched |>
        title = "25. Central Basin and Range: Vegetation disturbance") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model25.bp
 
 # Plot frequency distribution
@@ -5325,25 +5390,25 @@ model25.shannon <- model25.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model25.shannon
 
-#   Invasive
-model25.invasive <- model25.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model25.brte <- model25.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model25.diff$obs_diff[model25.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model25.diff$obs_diff[model25.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model25.invasive
+model25.brte
 
 # Combine plots
 grid.arrange(
   model25.bp, model25.annforb, model25.anngrass,
   model25.perforb, model25.pergrass, model25.shrub,
-  model25.shannon, model25.invasive,
+  model25.shannon, model25.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -5358,7 +5423,7 @@ grid.arrange(
 # Filter for model
 model26.matched <- all.matched |> 
   filter(Model == 26) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial seeding")))
 
 # Join functional cover cols
@@ -5381,9 +5446,9 @@ model26.matched <- model26.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -5392,7 +5457,7 @@ model26.matched <- model26.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model26.diff <- model26.matched |> 
@@ -5450,7 +5515,7 @@ model26.bp <- model26.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model26.bp
 
 # Plot frequency distribution
@@ -5538,25 +5603,25 @@ model26.shannon <- model26.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model26.shannon
 
-#   Invasive
-model26.invasive <- model26.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model26.brte <- model26.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model26.diff$obs_diff[model26.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model26.diff$obs_diff[model26.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model26.invasive
+model26.brte
 
 # Combine plots
 grid.arrange(
   model26.bp, model26.annforb, model26.anngrass,
   model26.perforb, model26.pergrass, model26.shrub,
-  model26.shannon, model26.invasive,
+  model26.shannon, model26.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -5571,7 +5636,7 @@ grid.arrange(
 # Filter for model
 model27.matched <- all.matched |> 
   filter(Model == 27) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn drill seeding")))
 
 # Join functional cover cols
@@ -5594,9 +5659,9 @@ model27.matched <- model27.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -5605,7 +5670,7 @@ model27.matched <- model27.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model27.diff <- model27.matched |> 
@@ -5657,7 +5722,7 @@ model27.bp <- model27.matched |>
        title = "27. Central Basin and Range: Post-burn drill seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model27.bp
 
 # Plot frequency distribution
@@ -5745,25 +5810,25 @@ model27.shannon <- model27.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model27.shannon
 
-#   Invasive
-model27.invasive <- model27.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model27.brte <- model27.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model27.diff$obs_diff[model27.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model27.diff$obs_diff[model27.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model27.invasive
+model27.brte
 
 # Combine plots
 grid.arrange(
   model27.bp, model27.annforb, model27.anngrass,
   model27.perforb, model27.pergrass, model27.shrub,
-  model27.shannon, model27.invasive,
+  model27.shannon, model27.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -5778,7 +5843,7 @@ grid.arrange(
 # Filter for model
 model28.matched <- all.matched |> 
   filter(Model == 28) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn ground seeding")))
 
 # Join functional cover cols
@@ -5801,9 +5866,9 @@ model28.matched <- model28.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -5812,7 +5877,7 @@ model28.matched <- model28.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model28.diff <- model28.matched |> 
@@ -5864,7 +5929,7 @@ model28.bp <- model28.matched |>
        title = "28. Central Basin and Range: Post-burn ground seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model28.bp
 
 # Plot frequency distribution
@@ -5952,25 +6017,25 @@ model28.shannon <- model28.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model28.shannon
 
-#   Invasive
-model28.invasive <- model28.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model28.brte <- model28.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model28.diff$obs_diff[model28.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model28.diff$obs_diff[model28.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model28.invasive
+model28.brte
 
 # Combine plots
 grid.arrange(
   model28.bp, model28.annforb, model28.anngrass,
   model28.perforb, model28.pergrass, model28.shrub,
-  model28.shannon, model28.invasive,
+  model28.shannon, model28.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -5985,7 +6050,7 @@ grid.arrange(
 # Filter for model
 model29.matched <- all.matched |> 
   filter(Model == 29) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn herbicide")))
 
 # Join functional cover cols
@@ -6008,9 +6073,9 @@ model29.matched <- model29.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -6019,7 +6084,7 @@ model29.matched <- model29.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model29.diff <- model29.matched |> 
@@ -6077,7 +6142,7 @@ model29.bp <- model29.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model29.bp
 
 # Plot frequency distribution
@@ -6165,25 +6230,25 @@ model29.shannon <- model29.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model29.shannon
 
-#   Invasive
-model29.invasive <- model29.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model29.brte <- model29.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model29.diff$obs_diff[model29.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model29.diff$obs_diff[model29.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model29.invasive
+model29.brte
 
 # Combine plots
 grid.arrange(
   model29.bp, model29.annforb, model29.anngrass,
   model29.perforb, model29.pergrass, model29.shrub,
-  model29.shannon, model29.invasive,
+  model29.shannon, model29.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -6201,7 +6266,7 @@ grid.arrange(
 # Filter for model
 model30.matched <- all.matched |> 
   filter(Model == 30) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -6224,9 +6289,9 @@ model30.matched <- model30.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -6235,7 +6300,7 @@ model30.matched <- model30.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model30.diff <- model30.matched |> 
@@ -6287,7 +6352,7 @@ model30.bp <- model30.matched |>
        title = "30. Wyoming Basin: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model30.bp
 
 # Plot frequency distribution
@@ -6375,25 +6440,25 @@ model30.shannon <- model30.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model30.shannon
 
-#   Invasive
-model30.invasive <- model30.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model30.brte <- model30.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model30.diff$obs_diff[model30.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model30.diff$obs_diff[model30.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model30.invasive
+model30.brte
 
 # Combine plots
 grid.arrange(
   model30.bp, model30.annforb, model30.anngrass,
   model30.perforb, model30.pergrass, model30.shrub,
-  model30.shannon, model30.invasive,
+  model30.shannon, model30.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -6411,7 +6476,7 @@ grid.arrange(
 # Filter for model
 model31.matched <- all.matched |> 
   filter(Model == 31) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Aerial seeding & soil disturbance")))
 
 # Join functional cover cols
@@ -6434,9 +6499,9 @@ model31.matched <- model31.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -6445,7 +6510,7 @@ model31.matched <- model31.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model31.diff <- model31.matched |> 
@@ -6497,7 +6562,7 @@ model31.bp <- model31.matched |>
        title = "31. Colorado Plateaus: Aerial seeding & soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model31.bp
 
 # Plot frequency distribution
@@ -6585,25 +6650,25 @@ model31.shannon <- model31.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model31.shannon
 
-#   Invasive
-model31.invasive <- model31.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model31.brte <- model31.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model31.diff$obs_diff[model31.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model31.diff$obs_diff[model31.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model31.invasive
+model31.brte
 
 # Combine plots
 grid.arrange(
   model31.bp, model31.annforb, model31.anngrass,
   model31.perforb, model31.pergrass, model31.shrub,
-  model31.shannon, model31.invasive,
+  model31.shannon, model31.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -6618,7 +6683,7 @@ grid.arrange(
 # Filter for model
 model32.matched <- all.matched |> 
   filter(Model == 32) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
 
 # Join functional cover cols
@@ -6641,9 +6706,9 @@ model32.matched <- model32.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -6652,7 +6717,7 @@ model32.matched <- model32.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model32.diff <- model32.matched |> 
@@ -6710,7 +6775,7 @@ model32.bp <- model32.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model32.bp
 
 # Plot frequency distribution
@@ -6798,25 +6863,25 @@ model32.shannon <- model32.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model32.shannon
 
-#   Invasive
-model32.invasive <- model32.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model32.brte <- model32.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model32.diff$obs_diff[model32.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model32.diff$obs_diff[model32.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model32.invasive
+model32.brte
 
 # Combine plots
 grid.arrange(
   model32.bp, model32.annforb, model32.anngrass,
   model32.perforb, model32.pergrass, model32.shrub,
-  model32.shannon, model32.invasive,
+  model32.shannon, model32.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -6831,7 +6896,7 @@ grid.arrange(
 # Filter for model
 model33.matched <- all.matched |> 
   filter(Model == 33) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -6854,9 +6919,9 @@ model33.matched <- model33.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -6865,7 +6930,7 @@ model33.matched <- model33.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model33.diff <- model33.matched |> 
@@ -6923,7 +6988,7 @@ model33.bp <- model33.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model33.bp
 
 # Plot frequency distribution
@@ -7011,25 +7076,25 @@ model33.shannon <- model33.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model33.shannon
 
-#   Invasive
-model33.invasive <- model33.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model33.brte <- model33.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model33.diff$obs_diff[model33.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model33.diff$obs_diff[model33.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model33.invasive
+model33.brte
 
 # Combine plots
 grid.arrange(
   model33.bp, model33.annforb, model33.anngrass,
   model33.perforb, model33.pergrass, model33.shrub,
-  model33.shannon, model33.invasive,
+  model33.shannon, model33.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -7044,7 +7109,7 @@ grid.arrange(
 # Filter for model
 model34.matched <- all.matched |> 
   filter(Model == 34) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Soil disturbance")))
 
 # Join functional cover cols
@@ -7067,9 +7132,9 @@ model34.matched <- model34.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -7078,7 +7143,7 @@ model34.matched <- model34.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model34.diff <- model34.matched |> 
@@ -7130,7 +7195,7 @@ model34.bp <- model34.matched |>
        title = "34. Colorado Plateaus: Soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model34.bp
 
 # Plot frequency distribution
@@ -7218,25 +7283,25 @@ model34.shannon <- model34.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model34.shannon
 
-#   Invasive
-model34.invasive <- model34.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model34.brte <- model34.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model34.diff$obs_diff[model34.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model34.diff$obs_diff[model34.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model34.invasive
+model34.brte
 
 # Combine plots
 grid.arrange(
   model34.bp, model34.annforb, model34.anngrass,
   model34.perforb, model34.pergrass, model34.shrub,
-  model34.shannon, model34.invasive,
+  model34.shannon, model34.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -7251,7 +7316,7 @@ grid.arrange(
 # Filter for model
 model35.matched <- all.matched |> 
   filter(Model == 35) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Vegetation disturbance")))
 
 # Join functional cover cols
@@ -7275,9 +7340,9 @@ model35.matched <- model35.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -7286,7 +7351,7 @@ model35.matched <- model35.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model35.diff <- model35.matched |> 
@@ -7350,7 +7415,7 @@ model35.bp <- model35.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model35.bp
 
 # Plot frequency distribution
@@ -7438,25 +7503,25 @@ model35.shannon <- model35.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model35.shannon
 
-#   Invasive
-model35.invasive <- model35.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model35.brte <- model35.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model35.diff$obs_diff[model35.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model35.diff$obs_diff[model35.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model35.invasive
+model35.brte
 
 # Combine plots
 grid.arrange(
   model35.bp, model35.annforb, model35.anngrass,
   model35.perforb, model35.pergrass, model35.shrub,
-  model35.shannon, model35.invasive,
+  model35.shannon, model35.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -7471,7 +7536,7 @@ grid.arrange(
 # Filter for model
 model36.matched <- all.matched |> 
   filter(Model == 36) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial seeding")))
 
 # Join functional cover cols
@@ -7494,9 +7559,9 @@ model36.matched <- model36.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -7505,7 +7570,7 @@ model36.matched <- model36.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model36.diff <- model36.matched |> 
@@ -7557,7 +7622,7 @@ model36.bp <- model36.matched |>
        title = "36. Colorado Plateaus: Post-burn aerial seeding") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model36.bp
 
 # Plot frequency distribution
@@ -7645,25 +7710,25 @@ model36.shannon <- model36.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model36.shannon
 
-#   Invasive
-model36.invasive <- model36.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model36.brte <- model36.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model36.diff$obs_diff[model36.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model36.diff$obs_diff[model36.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model36.invasive
+model36.brte
 
 # Combine plots
 grid.arrange(
   model36.bp, model36.annforb, model36.anngrass,
   model36.perforb, model36.pergrass, model36.shrub,
-  model36.shannon, model36.invasive,
+  model36.shannon, model36.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -7681,7 +7746,7 @@ grid.arrange(
 # Filter for model
 model37.matched <- all.matched |> 
   filter(Model == 37) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
 
 # Join functional cover cols
@@ -7703,9 +7768,9 @@ model37.matched <- model37.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -7714,7 +7779,7 @@ model37.matched <- model37.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model37.diff <- model37.matched |> 
@@ -7766,7 +7831,7 @@ model37.bp <- model37.matched |>
        title = "37. AZ/NM Plateau: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model37.bp
 
 # Plot frequency distribution
@@ -7854,25 +7919,25 @@ model37.shannon <- model37.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model37.shannon
 
-#   Invasive
-model37.invasive <- model37.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model37.brte <- model37.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model37.diff$obs_diff[model37.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model37.diff$obs_diff[model37.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model37.invasive
+model37.brte
 
 # Combine plots
 grid.arrange(
   model37.bp, model37.annforb, model37.anngrass,
   model37.perforb, model37.pergrass, model37.shrub,
-  model37.shannon, model37.invasive,
+  model37.shannon, model37.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -7887,7 +7952,7 @@ grid.arrange(
 # Filter for model
 model38.matched <- all.matched |> 
   filter(Model == 38) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -7909,9 +7974,9 @@ model38.matched <- model38.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -7920,7 +7985,7 @@ model38.matched <- model38.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model38.diff <- model38.matched |> 
@@ -7984,7 +8049,7 @@ model38.bp <- model38.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model38.bp
 
 # Plot frequency distribution
@@ -8072,25 +8137,25 @@ model38.shannon <- model38.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model38.shannon
 
-#   Invasive
-model38.invasive <- model38.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model38.brte <- model38.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model38.diff$obs_diff[model38.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model38.diff$obs_diff[model38.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
        title = "Invasive (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model38.invasive
+model38.brte
 
 # Combine plots
 grid.arrange(
   model38.bp, model38.annforb, model38.anngrass,
   model38.perforb, model38.pergrass, model38.shrub,
-  model38.shannon, model38.invasive,
+  model38.shannon, model38.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -8105,7 +8170,7 @@ grid.arrange(
 # Filter for model
 model39.matched <- all.matched |> 
   filter(Model == 39) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Soil disturbance")))
 
 # Join functional cover cols
@@ -8128,9 +8193,9 @@ model39.matched <- model39.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -8139,7 +8204,7 @@ model39.matched <- model39.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model39.diff <- model39.matched |> 
@@ -8191,7 +8256,7 @@ model39.bp <- model39.matched |>
        title = "39. AZ/NM Mountains: Soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model39.bp
 
 # Plot frequency distribution
@@ -8279,25 +8344,25 @@ model39.shannon <- model39.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model39.shannon
 
-#   Invasive
-model39.invasive <- model39.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model39.brte <- model39.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model39.diff$obs_diff[model39.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model39.diff$obs_diff[model39.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model39.invasive
+model39.brte
 
 # Combine plots
 grid.arrange(
   model39.bp, model39.annforb, model39.anngrass,
   model39.perforb, model39.pergrass, model39.shrub,
-  model39.shannon, model39.invasive,
+  model39.shannon, model39.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -8318,7 +8383,7 @@ grid.arrange(
 # Filter for model
 model40.matched <- all.matched |> 
   filter(Model == 40) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Post-burn control", "Post-burn aerial seeding")))
 
 # Join functional cover cols
@@ -8341,9 +8406,9 @@ model40.matched <- model40.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -8352,7 +8417,7 @@ model40.matched <- model40.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model40.diff <- model40.matched |> 
@@ -8410,7 +8475,7 @@ model40.bp <- model40.matched |>
   ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model40.bp
 
 # Plot frequency distribution
@@ -8498,25 +8563,25 @@ model40.shannon <- model40.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model40.shannon
 
-#   Invasive
-model40.invasive <- model40.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model40.brte <- model40.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model40.diff$obs_diff[model40.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model40.diff$obs_diff[model40.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Invasive") +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model40.invasive
+model40.brte
 
 # Combine plots
 grid.arrange(
   model40.bp, model40.annforb, model40.anngrass,
   model40.perforb, model40.pergrass, model40.shrub,
-  model40.shannon, model40.invasive,
+  model40.shannon, model40.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -8534,7 +8599,7 @@ grid.arrange(
 # Filter for model
 model41.matched <- all.matched |> 
   filter(Model == 41) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Herbicide")))
 
 # Join functional cover cols
@@ -8557,9 +8622,9 @@ model41.matched <- model41.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -8568,7 +8633,7 @@ model41.matched <- model41.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model41.diff <- model41.matched |> 
@@ -8620,7 +8685,7 @@ model41.bp <- model41.matched |>
        title = "41. Chihuahuan Desert: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model41.bp
 
 # Plot frequency distribution
@@ -8747,7 +8812,7 @@ grid.arrange(
 # Filter for model
 model42.matched <- all.matched |> 
   filter(Model == 42) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, InvasiveCover) |> 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
 # Join functional cover cols
@@ -8770,9 +8835,9 @@ model42.matched <- model42.matched |>
              indicators == "AnnGramCover_AH" ~ "Annual grass",
              indicators == "PerForbCover_AH" ~ "Perennial forb",
              indicators == "PerGramCover_AH" ~ "Perennial grass",
-             indicators == "ShrubCover_AH" ~ "Shrub",
+             indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
-             indicators == "InvasiveCover" ~ "Invasive"
+             indicators == "BRTE_cover" ~ "Bromus tectorum"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -8781,7 +8846,7 @@ model42.matched <- model42.matched |>
                                         "Perennial grass",
                                         "Shrub",
                                         "Shannon diversity",
-                                        "Invasive")))
+                                        "Bromus tectorum")))
 
 # Calculate observed mean difference
 model42.diff <- model42.matched |> 
@@ -8839,7 +8904,7 @@ model42.bp <- model42.matched |>
     annotations = c("*")
   ) +
   theme(axis.text.x = element_text(color = "black")) +
-  theme(plot.margin = margin(10, 10, 20, 10))
+  theme(plot.margin = margin(10, 10, 10, 10))
 model42.bp
 
 # Plot frequency distribution
@@ -8927,25 +8992,25 @@ model42.shannon <- model42.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model42.shannon
 
-#   Invasive
-model42.invasive <- model42.perm |> 
-  filter(indicators == "Invasive") |> 
+#   Bromus tectorum
+model42.brte <- model42.perm |> 
+  filter(indicators == "Bromus tectorum") |> 
   ggplot(aes(x = mean_diff)) +
   geom_histogram(fill = "lightblue2", color = "black") +
-  geom_vline(xintercept = model42.diff$obs_diff[model42.diff$indicators == "Invasive"],
+  geom_vline(xintercept = model42.diff$obs_diff[model42.diff$indicators == "Bromus tectorum"],
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = expression(italic("Invasive"))) +
+       title = expression(italic("Bromus tectorum"))) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
-model42.invasive
+model42.brte
 
 # Combine plots
 grid.arrange(
   model42.bp, model42.annforb, model42.anngrass,
   model42.perforb, model42.pergrass, model42.shrub,
-  model42.shannon, model42.invasive,
+  model42.shannon, model42.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -8966,12 +9031,12 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model01_permutation.tiff",
 grid.arrange(
   model01.bp, model01.annforb, model01.anngrass,
   model01.perforb, model01.pergrass, model01.shrub,
-  model01.shannon, model01.invasive,
+  model01.shannon, model01.brte, model01.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 dev.off()
@@ -8983,12 +9048,12 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model02_permutation.tiff",
 grid.arrange(
   model02.bp, model02.annforb, model02.anngrass,
   model02.perforb, model02.pergrass, model02.shrub,
-  model02.shannon, model02.invasive,
+  model02.shannon, model02.brte, model02.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 dev.off()
@@ -9002,12 +9067,12 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model03_permutation.tiff",
 grid.arrange(
   model03.bp, model03.annforb, model03.anngrass,
   model03.perforb, model03.pergrass, model03.shrub,
-  model03.shannon, model03.invasive,
+  model03.shannon, model03.brte, model03.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 dev.off()
@@ -9021,12 +9086,12 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model04_permutation.tiff",
 grid.arrange(
   model04.bp, model04.annforb, model04.anngrass,
   model04.perforb, model04.pergrass, model04.shrub,
-  model04.shannon, model04.invasive,
+  model04.shannon, model04.brte, model04.artemisia,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
     c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(7, 7, 8, 8, 9, 9)
   )
 )
 dev.off()
@@ -9037,7 +9102,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model05_permutation.tiff",
 grid.arrange(
   model05.bp, model05.annforb, model05.anngrass,
   model05.perforb, model05.pergrass, model05.shrub,
-  model05.shannon, model05.invasive,
+  model05.shannon, model05.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9057,7 +9122,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model06_permutation.tiff",
 grid.arrange(
   model06.bp, model06.annforb, model06.anngrass,
   model06.perforb, model06.pergrass, model06.shrub,
-  model06.shannon, model06.invasive,
+  model06.shannon, model06.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9076,7 +9141,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model07_permutation.tiff",
 grid.arrange(
   model07.bp, model07.annforb, model07.anngrass,
   model07.perforb, model07.pergrass, model07.shrub,
-  model07.shannon, model07.invasive,
+  model07.shannon, model07.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9092,7 +9157,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model08_permutation.tiff",
 grid.arrange(
   model08.bp, model08.annforb, model08.anngrass,
   model08.perforb, model08.pergrass, model08.shrub,
-  model08.shannon, model08.invasive,
+  model08.shannon, model08.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9108,7 +9173,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model09_permutation.tiff",
 grid.arrange(
   model09.bp, model09.annforb, model09.anngrass,
   model09.perforb, model09.pergrass, model09.shrub,
-  model09.shannon, model09.invasive,
+  model09.shannon, model09.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9124,7 +9189,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model10_permutation.tiff",
 grid.arrange(
   model10.bp, model10.annforb, model10.anngrass,
   model10.perforb, model10.pergrass, model10.shrub,
-  model10.shannon, model10.invasive,
+  model10.shannon, model10.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9140,7 +9205,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model13_permutation.tiff",
 grid.arrange(
   model13.bp, model13.annforb, model13.anngrass,
   model13.perforb, model13.pergrass, model13.shrub,
-  model13.shannon, model13.invasive,
+  model13.shannon, model13.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9159,7 +9224,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model14_permutation.tiff",
 grid.arrange(
   model14.bp, model14.annforb, model14.anngrass,
   model14.perforb, model14.pergrass, model14.shrub,
-  model14.shannon, model14.invasive,
+  model14.shannon, model14.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9175,7 +9240,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model15_permutation.tiff",
 grid.arrange(
   model15.bp, model15.annforb, model15.anngrass,
   model15.perforb, model15.pergrass, model15.shrub,
-  model15.shannon, model15.invasive,
+  model15.shannon, model15.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9191,7 +9256,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model16_permutation.tiff",
 grid.arrange(
   model16.bp, model16.annforb, model16.anngrass,
   model16.perforb, model16.pergrass, model16.shrub,
-  model16.shannon, model16.invasive,
+  model16.shannon, model16.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9207,7 +9272,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model17_permutation.tiff",
 grid.arrange(
   model17.bp, model17.annforb, model17.anngrass,
   model17.perforb, model17.pergrass, model17.shrub,
-  model17.shannon, model17.invasive,
+  model17.shannon, model17.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9223,7 +9288,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model18_permutation.tiff",
 grid.arrange(
   model18.bp, model18.annforb, model18.anngrass,
   model18.perforb, model18.pergrass, model18.shrub,
-  model18.shannon, model18.invasive,
+  model18.shannon, model18.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9239,7 +9304,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model19_permutation.tiff",
 grid.arrange(
   model19.bp, model19.annforb, model19.anngrass,
   model19.perforb, model19.pergrass, model19.shrub,
-  model19.shannon, model19.invasive,
+  model19.shannon, model19.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9255,7 +9320,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model20_permutation.tiff",
 grid.arrange(
   model20.bp, model20.annforb, model20.anngrass,
   model20.perforb, model20.pergrass, model20.shrub,
-  model20.shannon, model20.invasive,
+  model20.shannon, model20.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9271,7 +9336,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model21_permutation.tiff",
 grid.arrange(
   model21.bp, model21.annforb, model21.anngrass,
   model21.perforb, model21.pergrass, model21.shrub,
-  model21.shannon, model21.invasive,
+  model21.shannon, model21.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9287,7 +9352,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model22_permutation.tiff",
 grid.arrange(
   model22.bp, model22.annforb, model22.anngrass,
   model22.perforb, model22.pergrass, model22.shrub,
-  model22.shannon, model22.invasive,
+  model22.shannon, model22.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9303,7 +9368,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model23_permutation.tiff",
 grid.arrange(
   model23.bp, model23.annforb, model23.anngrass,
   model23.perforb, model23.pergrass, model23.shrub,
-  model23.shannon, model23.invasive,
+  model23.shannon, model23.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9319,7 +9384,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model24_permutation.tiff",
 grid.arrange(
   model24.bp, model24.annforb, model24.anngrass,
   model24.perforb, model24.pergrass, model24.shrub,
-  model24.shannon, model24.invasive,
+  model24.shannon, model24.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9338,7 +9403,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model25_permutation.tiff",
 grid.arrange(
   model25.bp, model25.annforb, model25.anngrass,
   model25.perforb, model25.pergrass, model25.shrub,
-  model25.shannon, model25.invasive,
+  model25.shannon, model25.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9354,7 +9419,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model26_permutation.tiff",
 grid.arrange(
   model26.bp, model26.annforb, model26.anngrass,
   model26.perforb, model26.pergrass, model26.shrub,
-  model26.shannon, model26.invasive,
+  model26.shannon, model26.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9370,7 +9435,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model27_permutation.tiff",
 grid.arrange(
   model27.bp, model27.annforb, model27.anngrass,
   model27.perforb, model27.pergrass, model27.shrub,
-  model27.shannon, model27.invasive,
+  model27.shannon, model27.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9387,7 +9452,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model28_permutation.tiff",
 grid.arrange(
   model28.bp, model28.annforb, model28.anngrass,
   model28.perforb, model28.pergrass, model28.shrub,
-  model28.shannon, model28.invasive,
+  model28.shannon, model28.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9403,7 +9468,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model29_permutation.tiff",
 grid.arrange(
   model29.bp, model29.annforb, model29.anngrass,
   model29.perforb, model29.pergrass, model29.shrub,
-  model29.shannon, model29.invasive,
+  model29.shannon, model29.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9419,7 +9484,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model30_permutation.tiff",
 grid.arrange(
   model30.bp, model30.annforb, model30.anngrass,
   model30.perforb, model30.pergrass, model30.shrub,
-  model30.shannon, model30.invasive,
+  model30.shannon, model30.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9435,7 +9500,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model31_permutation.tiff",
 grid.arrange(
   model31.bp, model31.annforb, model31.anngrass,
   model31.perforb, model31.pergrass, model31.shrub,
-  model31.shannon, model31.invasive,
+  model31.shannon, model31.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9451,7 +9516,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model32_permutation.tiff",
 grid.arrange(
   model32.bp, model32.annforb, model32.anngrass,
   model32.perforb, model32.pergrass, model32.shrub,
-  model32.shannon, model32.invasive,
+  model32.shannon, model32.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9470,7 +9535,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model33_permutation.tiff",
 grid.arrange(
   model33.bp, model33.annforb, model33.anngrass,
   model33.perforb, model33.pergrass, model33.shrub,
-  model33.shannon, model33.invasive,
+  model33.shannon, model33.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9489,7 +9554,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model34_permutation.tiff",
 grid.arrange(
   model34.bp, model34.annforb, model34.anngrass,
   model34.perforb, model34.pergrass, model34.shrub,
-  model34.shannon, model34.invasive,
+  model34.shannon, model34.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9505,7 +9570,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model35_permutation.tiff",
 grid.arrange(
   model35.bp, model35.annforb, model35.anngrass,
   model35.perforb, model35.pergrass, model35.shrub,
-  model35.shannon, model35.invasive,
+  model35.shannon, model35.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9521,7 +9586,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model36_permutation.tiff",
 grid.arrange(
   model36.bp, model36.annforb, model36.anngrass,
   model36.perforb, model36.pergrass, model36.shrub,
-  model36.shannon, model36.invasive,
+  model36.shannon, model36.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9537,7 +9602,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model37_permutation.tiff",
 grid.arrange(
   model37.bp, model37.annforb, model37.anngrass,
   model37.perforb, model37.pergrass, model37.shrub,
-  model37.shannon, model37.invasive,
+  model37.shannon, model37.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9553,7 +9618,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model38_permutation.tiff",
 grid.arrange(
   model38.bp, model38.annforb, model38.anngrass,
   model38.perforb, model38.pergrass, model38.shrub,
-  model38.shannon, model38.invasive,
+  model38.shannon, model38.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9569,7 +9634,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model39_permutation.tiff",
 grid.arrange(
   model39.bp, model39.annforb, model39.anngrass,
   model39.perforb, model39.pergrass, model39.shrub,
-  model39.shannon, model39.invasive,
+  model39.shannon, model39.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9588,7 +9653,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model40_permutation.tiff",
 grid.arrange(
   model40.bp, model40.annforb, model40.anngrass,
   model40.perforb, model40.pergrass, model40.shrub,
-  model40.shannon, model40.invasive,
+  model40.shannon, model40.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9604,7 +9669,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model41_permutation.tiff",
 grid.arrange(
   model41.bp, model41.annforb, model41.anngrass,
   model41.perforb, model41.pergrass, model41.shrub,
-  model41.shannon, model41.invasive,
+  model41.shannon, model41.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9620,7 +9685,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model42_permutation.tiff",
 grid.arrange(
   model42.bp, model42.annforb, model42.anngrass,
   model42.perforb, model42.pergrass, model42.shrub,
-  model42.shannon, model42.invasive,
+  model42.shannon, model42.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9636,7 +9701,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model43_permutation.tiff",
 grid.arrange(
   model43.bp, model43.annforb, model43.anngrass,
   model43.perforb, model43.pergrass, model43.shrub,
-  model43.shannon, model43.invasive,
+  model43.shannon, model43.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9655,7 +9720,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model44_permutation.tiff",
 grid.arrange(
   model44.bp, model44.annforb, model44.anngrass,
   model44.perforb, model44.pergrass, model44.shrub,
-  model44.shannon, model44.invasive,
+  model44.shannon, model44.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
@@ -9689,7 +9754,7 @@ tiff("figures/2026-06_PSM-and-permutation-tests/model46_permutation.tiff",
 grid.arrange(
   model46.bp, model46.annforb, model46.anngrass,
   model46.perforb, model46.pergrass, model46.shrub,
-  model46.shannon, model46.invasive,
+  model46.shannon, model46.brte,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(NA, 2, 2, 3, 3, NA),
