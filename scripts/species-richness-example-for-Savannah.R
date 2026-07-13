@@ -73,11 +73,21 @@ srp.closure.richness |>
   arrange(desc(n))
 
 dat <- srp.closure.richness |> 
-  filter(MLRA_name == "Snake River Plains")
+  filter(MLRA_name == "Snake River Plains") |> 
+  mutate(trt_control = case_when(
+    trt_control == "Post-burn control" ~ "Control",
+    trt_control == "Post-burn closure" ~ "Closure"
+  )) |> 
+  arrange(EcoSiteID) |> 
+  arrange(trt_control)
 
 # t-test
 t.test(dat$richness ~ dat$trt_control)
 
+# Write to CSV
+write_csv(dat,
+          file = "data/data-wrangling-intermediate/species-richness-example_Snake-River-Plain-closure.csv",
+          na = "")
 
 
 # SRP closure (Shannon) ---------------------------------------------------
