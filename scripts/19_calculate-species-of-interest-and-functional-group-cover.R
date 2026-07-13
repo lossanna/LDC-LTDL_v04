@@ -173,7 +173,7 @@ cop.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # Pinus, Juniperus, Artemisia
 
 
 ### Arizona/New Mexico Plateau --------------------------------------------
@@ -412,12 +412,12 @@ pj <- all.matched.cover |>
 # Sum to get total
 pj <- pj |> 
   group_by(PrimaryKey) |> 
-  summarise(pj_cover = sum(Cover_AH))
+  summarise(PJ_cover = sum(Cover_AH))
 
 # Plots without pj
 pj0 <- data.frame(
   PrimaryKey = primarykeys,
-  pj_cover = 0
+  PJ_cover = 0
 ) |> 
   filter(!PrimaryKey %in% pj$PrimaryKey)
 
@@ -431,7 +431,7 @@ all.matched.pj <- all.matched |>
 
 # Check for NAs
 all.matched.pj |> 
-  filter(is.na(pj_cover))
+  filter(is.na(PJ_cover))
 
 
 
