@@ -1,5 +1,5 @@
 # Created: 2026-07-08
-# Updated: 2026-07-10
+# Updated: 2026-07-13
 
 # Purpose: Identify prominent species across ecoregions (invasive species or targets of
 #   land treatments). Find cover of these species for each LDC point/primary key.
@@ -112,7 +112,8 @@ srp.species <- ldc.011 |>
 srp.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 ### Northern Basin and Range ----------------------------------------------
@@ -126,7 +127,8 @@ nbr.species <- ldc.011 |>
 nbr.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 ### Central Basin and Range -----------------------------------------------
@@ -140,7 +142,8 @@ cbr.species <- ldc.011 |>
 cbr.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 ### Wyoming Basin ---------------------------------------------------------
@@ -154,7 +157,8 @@ wyb.species <- ldc.011 |>
 wyb.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 ### Colorado Plateaus -----------------------------------------------------
@@ -168,7 +172,8 @@ cop.species <- ldc.011 |>
 cop.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRTE
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRTE, Artemisia
 
 
 ### Arizona/New Mexico Plateau --------------------------------------------
@@ -183,7 +188,7 @@ az.nm.plat.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 20) # BRTE
+  print(n = 30) # BRTE, Artemisia
 
 
 
