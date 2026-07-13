@@ -188,7 +188,7 @@ az.nm.plat.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # Pinus, Juniperus, Artemisia
 
 
 
@@ -219,7 +219,7 @@ chihuahuan.species <- ldc.011 |>
 chihuahuan.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # PRGL2 (technically native, but probably what the herbicide is for)
+  arrange(desc(sum_cover)) # Prosopis
 
 
 
@@ -397,6 +397,43 @@ all.matched.artemisia |>
   filter(is.na(Artemisia_cover))
 
 
+## Pinus & Juniperus ------------------------------------------------------
+
+# PJ codes
+pj.codes <- crosswalk |> 
+  filter(str_detect(Scientific, "Pinus|Juniperus"))
+
+# pj rows only
+pj <- all.matched.cover |> 
+  filter(CurrentPLANTSCode %in% pj.codes$CurrentPLANTSCode) |> 
+  select(PrimaryKey, CurrentPLANTSCode, Cover_AH) |> 
+  distinct(.keep_all = TRUE)
+
+# Sum to get total
+pj <- pj |> 
+  group_by(PrimaryKey) |> 
+  summarise(pj_cover = sum(Cover_AH))
+
+# Plots without pj
+pj0 <- data.frame(
+  PrimaryKey = primarykeys,
+  pj_cover = 0
+) |> 
+  filter(!PrimaryKey %in% pj$PrimaryKey)
+
+# Combine
+all.matched.pj <- pj |> 
+  bind_rows(pj0)
+
+# Join the rest of all.matched cols
+all.matched.pj <- all.matched |> 
+  left_join(all.matched.pj)
+
+# Check for NAs
+all.matched.pj |> 
+  filter(is.na(pj_cover))
+
+
 
 # Recalculate functional group cover --------------------------------------
 
@@ -532,7 +569,8 @@ all.matched.species.funct <- all.matched.funct.cover |>
   left_join(all.matched.brte) |> 
   left_join(all.matched.brru2) |> 
   left_join(all.matched.prosopis) |> 
-  left_join(all.matched.artemisia)
+  left_join(all.matched.artemisia) |> 
+  left_join(all.matched.pj)
 
 # Check for NAs
 apply(all.matched.species.funct, 2, anyNA)
