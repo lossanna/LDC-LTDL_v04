@@ -5,6 +5,24 @@
 #   land treatments). Find cover of these species for each LDC point/primary key.
 #   Also, recalculate functional group cover for each LDC point.
 
+# If a species/group of interest shows up in the top 30 of both raw summed cover and
+#   number of plots, then it will be included in permutation tests.
+
+# Results:
+#   Blue Mountains: BRTE, Artemisia, PJ
+#   Middle Rockies: BRTE, Artemisia
+#   Southern Rockies: Artemisia, PJ
+#   NW Great Plains: BRTE, Artemisia
+#   Snake River Plain: BRTE, Artemisia
+#   Northern Basin and Range: BRTE, Artemisia, PJ
+#   Central Basin and Range: BRTE, Artemisia, PJ
+#   Wyoming Basin: BRTE, Artemisia
+#   CO Plateaus: BRTE, Artemisia, PJ
+#   AZ/NM Plateau: BRTE, Artemisia, PJ
+#   Mojave: BRRU2, LATR2
+#   Chihuahuan: LATR2, Prosopis
+#   AZ/NM Mountains: BRRU2, PJ
+
 
 library(tidyverse)
 
@@ -46,7 +64,13 @@ blue.mts.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # BRTE, Artemisia, Juniperus
+
+blue.mts.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # BRTE, Artemisia, Juniperus
 
 
 ### Middle Rockies --------------------------------------------------------
@@ -61,8 +85,13 @@ m.rockies.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # Artemisia, BRTE, Pinus
 
+m.rockies.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Artemisia, BRTE
 
 
 ### Southern Rockies ------------------------------------------------------
@@ -77,7 +106,13 @@ s.rockies.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # Artemisia
+  print(n = 30) # Artemisia, Pinus
+
+s.rockies.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Artemisia, Pinus
 
 
 
@@ -95,7 +130,13 @@ ngp.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # BRTE, Artemisia, Pinus, Juniperus
+
+ngp.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Artemisia, BRTE
 
 
 
@@ -115,6 +156,12 @@ srp.species |>
   arrange(desc(sum_cover)) |> 
   print(n = 30) # BRTE, Artemisia
 
+srp.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # BRTE, Artemisia
+
 
 ### Northern Basin and Range ----------------------------------------------
 
@@ -128,7 +175,13 @@ nbr.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # BRTE, Artemisia, Juniperus
+
+nbr.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # BRTE, Artemisia, Juniperus
 
 
 ### Central Basin and Range -----------------------------------------------
@@ -143,8 +196,14 @@ cbr.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # BRTE, Artemisia, Juniperus
 
+cbr.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # BRTE, Artemisia, Juniperus
+        
 
 ### Wyoming Basin ---------------------------------------------------------
 
@@ -158,7 +217,13 @@ wyb.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # BRTE, Artemisia
+  print(n = 30) # Artemisia, BRTE, Juniperus
+
+wyb.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Artemisia, BRTE
 
 
 ### Colorado Plateaus -----------------------------------------------------
@@ -173,7 +238,13 @@ cop.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # Pinus, Juniperus, Artemisia
+  print(n = 30) # Juniperus, BRTE, Pinus, Artemisia
+
+cop.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Juniperus, BRTE, Artemisia, Pinus
 
 
 ### Arizona/New Mexico Plateau --------------------------------------------
@@ -188,7 +259,13 @@ az.nm.plat.species |>
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
   arrange(desc(sum_cover)) |> 
-  print(n = 30) # Pinus, Juniperus, Artemisia
+  print(n = 30) # Artemisia, Pinus, Juniperus, BRTE
+
+az.nm.plat.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Artemisia, Pinus, Juniperus, BRTE
 
 
 
@@ -205,7 +282,14 @@ mojave.species <- ldc.011 |>
 mojave.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRRU2
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # BRRU2, LATR12
+
+mojave.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # LATR12, BRRU2
 
 
 ### Chihuahuan Desert -----------------------------------------------------
@@ -219,7 +303,14 @@ chihuahuan.species <- ldc.011 |>
 chihuahuan.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # Prosopis
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # LATR2, Prosopis
+
+chihuahuan.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Prosopis, LATR2
 
 
 
@@ -236,8 +327,14 @@ az.nm.mts.species <- ldc.011 |>
 az.nm.mts.species |> 
   group_by(Species, ScientificName) |> 
   summarise(sum_cover = sum(SpeciesCover_AH)) |> 
-  arrange(desc(sum_cover)) # BRRU2
+  arrange(desc(sum_cover)) |> 
+  print(n = 30) # Pinus, Juniperus, BRRU2
 
+az.nm.mts.species |> 
+  group_by(Species, ScientificName) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  print(n = 30) # Juniperus, Pinus, BRRU2
 
 
 # List of primary keys ----------------------------------------------------
@@ -434,6 +531,39 @@ all.matched.pj |>
   filter(is.na(PJ_cover))
 
 
+## LATR2 ------------------------------------------------------------------
+
+# LATR2 rows only
+latr2 <- all.matched.cover |> 
+  filter(CurrentPLANTSCode == "LATR2") |> 
+  select(PrimaryKey, CurrentPLANTSCode, Cover_AH) |> 
+  distinct(.keep_all = TRUE)
+
+# Plots without LATR2
+latr20 <- data.frame(
+  PrimaryKey = primarykeys,
+  CurrentPLANTSCode = "LATR2",
+  Cover_AH = 0
+) |> 
+  filter(!PrimaryKey %in% latr2$PrimaryKey)
+
+# Combine
+all.matched.latr2 <- latr2 |> 
+  bind_rows(latr20)
+
+# Rename column
+all.matched.latr2 <- all.matched.latr2 |> 
+  select(-CurrentPLANTSCode) |> 
+  rename(LATR2_cover = Cover_AH)
+
+# Join the rest of all.matched cols
+all.matched.latr2 <- all.matched |> 
+  left_join(all.matched.latr2)
+
+# Check for NAs
+all.matched.latr2 |> 
+  filter(is.na(LATR2_cover))
+
 
 # Recalculate functional group cover --------------------------------------
 
@@ -570,7 +700,8 @@ all.matched.species.funct <- all.matched.funct.cover |>
   left_join(all.matched.brru2) |> 
   left_join(all.matched.prosopis) |> 
   left_join(all.matched.artemisia) |> 
-  left_join(all.matched.pj)
+  left_join(all.matched.pj) |> 
+  left_join(all.matched.latr2)
 
 # Check for NAs
 apply(all.matched.species.funct, 2, anyNA)
