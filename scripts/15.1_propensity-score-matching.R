@@ -1,5 +1,5 @@
 # Created: 2026-06-29
-# Updated: 2026-06-30
+# Updated: 2026-07-14
 
 # Purpose: Run propensity score matching for all 42 models.
 
@@ -1695,7 +1695,7 @@ summary(model13.psm) # 61 treated matched
 # Diagnostic love plot
 model13.loveplot <- love.plot(model13.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "13. Northern Basin and Range: Drill seeding & soil disturbance") +
+  labs(title = "13. Northern Basin & Range: Drill seeding & soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model13.loveplot
@@ -2359,7 +2359,7 @@ summary(model18.psm) # 88 treated matched
 # Diagnostic love plot
 model18.loveplot <- love.plot(model18.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "18. Northern Basin and Range: Post-burn aerial & drill seeding") +
+  labs(title = "18. Northern Basin & Range: Post-burn aerial & drill seeding") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model18.loveplot
@@ -3034,7 +3034,7 @@ summary(model23.psm) # 36 treated matched
 # Diagnostic love plot
 model23.loveplot <- love.plot(model23.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "23. Central Basin and Range: Drill seeding & soil disturbance") +
+  labs(title = "23. Central Basin & Range: Drill seeding & soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model23.loveplot
@@ -4900,7 +4900,7 @@ summary(model37.psm) # 47 treated matched
 # Diagnostic love plot
 model37.loveplot <- love.plot(model37.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "37. AZ/NM Plateau: Herbicide") +
+  labs(title = "37. Arizona/New Mexico Plateau: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model37.loveplot
@@ -4994,7 +4994,7 @@ model37.plot <- model37.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(x = NULL,
-       title = "37. AZ/NM Plateau: Herbicide") +
+       title = "37. Arizona/New Mexico Plateau: Herbicide") +
   annotate(
     "text",
     x = Inf, y = Inf,
@@ -5032,7 +5032,7 @@ summary(model38.psm) # 27 treated matched
 # Diagnostic love plot
 model38.loveplot <- love.plot(model38.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "38. AZ/NM Plateau: Prescribed burn") +
+  labs(title = "38. Arizona/New Mexico Plateau: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model38.loveplot
@@ -5125,7 +5125,7 @@ model38.plot <- model38.pred |>
   ) +
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
-  labs(title = "38. AZ/NM Plateau: Prescribed burn",
+  labs(title = "38. Arizona/New Mexico Plateau: Prescribed burn",
        x = NULL) +
   annotate(
     "text",
@@ -5164,7 +5164,7 @@ summary(model39.psm) # 42 treated matched
 # Diagnostic love plot
 model39.loveplot <- love.plot(model39.psm, stars = "std",           
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "39. AZ/NM Plateau: Soil disturbance") +
+  labs(title = "39. Arizona/New Mexico Plateau: Soil disturbance") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model39.loveplot
@@ -5257,7 +5257,7 @@ model39.plot <- model39.pred |>
   ) +
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
-  labs(title = "39. AZ/NM Plateau: Soil disturbance",
+  labs(title = "39. Arizona/New Mexico Plateau: Soil disturbance",
        x = NULL)  +
   annotate(
     "text",
@@ -5579,7 +5579,7 @@ summary(model42.psm) # 29 treated matched
 # Diagnostic love plot
 model42.loveplot <- love.plot(model42.psm, stars = "std",
                               thresholds = c(m = 0.2, v = 2)) +
-  labs(title = "42. AZ/NM Mountains: Prescribed burn") +
+  labs(title = "42. Arizona/New Mexico Mountains: Prescribed burn") +
   theme(legend.title = element_blank()) +
   theme(legend.position = "bottom")
 model42.loveplot
@@ -5673,7 +5673,7 @@ model42.plot <- model42.pred |>
   theme_bw() +
   theme(axis.text.x = element_text(color = "black")) +
   labs(x = NULL,
-       title = "42. AZ/NM Mountains: Prescribed burn") +
+       title = "42. Arizona/New Mexico Mountains: Prescribed burn") +
   annotate(
     "text",
     x = Inf, y = Inf,
