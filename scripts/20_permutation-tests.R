@@ -8904,7 +8904,7 @@ model37.bp <- model37.matched |>
   theme_bw() +
   labs(y = "Cover (%)",
        x = NULL,
-       title = "37. AZ/NM Plateau: Herbicide") +
+       title = "37. Arizona/New Mexico Plateau: Herbicide") +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
   scale_x_discrete(
@@ -9145,7 +9145,7 @@ model38.bp <- model38.matched |>
   theme_bw() +
   labs(y = "Cover (%)",
        x = NULL,
-       title = "38. AZ/NM Plateau: Prescribed burn") +
+       title = "38. Arizona/New Mexico Plateau: Prescribed burn") +
   geom_signif(
     y_position = 48,
     xmin = 1.8,
@@ -9387,7 +9387,7 @@ p_values39 <- model39.perm |>
   inner_join(model39.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values39 # p = 0.40 for shannon
+p_values39 # p = 0.048 for annual grass and BRTE; p = 0.02 for Artemisia
 
 # Boxplot
 model39.bp <- model39.matched |> 
@@ -9398,7 +9398,25 @@ model39.bp <- model39.matched |>
   theme_bw() +
   labs(y = "Cover (%)",
        x = NULL,
-       title = "39. AZ/NM Mountains: Soil disturbance") +
+       title = "39. Arizona/New Mexico Plateau: Soil disturbance") +
+  geom_signif(
+    y_position = 20,
+    xmin = 1.8,
+    xmax = 2.2, 
+    annotations = c("*")
+  ) +
+  geom_signif(
+    y_position = 15,
+    xmin = 5.8,
+    xmax = 6.2, 
+    annotations = c("*")
+  ) +
+  geom_signif(
+    y_position = 53,
+    xmin = 6.8,
+    xmax = 7.2, 
+    annotations = c("*")
+  ) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
   scale_x_discrete(
@@ -9432,7 +9450,7 @@ model39.anngrass <- model39.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Annual grass") +
+       title = "Annual grass (*)") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model39.anngrass
@@ -9488,7 +9506,7 @@ model39.shannon <- model39.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Shannon diversity (*)") +
+       title = "Shannon diversity") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model39.shannon
@@ -9502,7 +9520,7 @@ model39.brte <- model39.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = expression(italic("Bromus tectorum"))) +
+       title = expression(italic("Bromus tectorum") ~ "(*)")) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model39.brte
@@ -9516,7 +9534,7 @@ model39.artemisia <- model39.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = expression(italic("Artemisia"))) +
+       title = expression(italic("Artemisia") ~ "(*)")) +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model39.artemisia
@@ -10110,7 +10128,7 @@ model42.bp <- model42.matched |>
   theme_bw() +
   labs(y = "Cover (%)",
        x = NULL,
-       title = "42. AZ/NM Mountains: Prescribed burn") +
+       title = "42. Arizona/New Mexico Mountains: Prescribed burn") +
   theme(legend.title = element_blank()) +
   geom_signif(
     y_position = 30,
@@ -10910,14 +10928,15 @@ dev.off()
 tiff("figures/2026-06_PSM-and-permutation-tests/model38_permutation.tiff",
      units = "in", width = 10, height = 9, res = 150)
 grid.arrange(
-  model41.bp, model41.annforb, model41.anngrass,
-  model41.perforb, model41.pergrass, model41.shrub,
-  model41.shannon, model41.brte,
+  model38.bp, model38.annforb, model38.anngrass,
+  model38.perforb, model38.pergrass, model38.shrub,
+  model38.shannon, model38.brte, model38.artemisia, 
+  model38.pj,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
-    c(NA, 2, 2, 3, 3, NA),
-    c(4, 4, 5, 5, 6, 6),
-    c(NA, 7, 7, 8, 8, NA)
+    c(2, 2, 3, 3, 4, 4),
+    c(5, 5, 6, 6, 7, 7),
+    c(8, 8, 9, 9, 10, 10)
   )
 )
 dev.off()
@@ -10926,10 +10945,10 @@ dev.off()
 tiff("figures/2026-06_PSM-and-permutation-tests/model39_permutation.tiff",
      units = "in", width = 10, height = 9, res = 150)
 grid.arrange(
-  model38.bp, model38.annforb, model38.anngrass,
-  model38.perforb, model38.pergrass, model38.shrub,
-  model38.shannon, model38.brte, model38.artemisia, 
-  model38.pj,
+  model39.bp, model39.annforb, model39.anngrass,
+  model39.perforb, model39.pergrass, model39.shrub,
+  model39.shannon, model39.brte, model39.artemisia, 
+  model39.pj,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(2, 2, 3, 3, 4, 4),
