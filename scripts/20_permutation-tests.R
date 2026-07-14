@@ -1508,8 +1508,8 @@ p_values07 <- model07.perm |>
   inner_join(model07.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values07 # p = 0.013 for perennial forb; p = 0.005 for perennial grass
-#             p < 0.001 for shannon
+p_values07 # p = 0.013 for perennial forb; p = 0.005 for perennial grass;
+#   p < 0.001 for shannon
 
 # Boxplot
 model07.bp <- model07.matched |> 
@@ -1976,7 +1976,7 @@ p_values09 <- model09.perm |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
 p_values09 # p = 0.003 for annual grass; p = 0.012 for perennial grass;
-#             p < 0.001 for shannon; p = 0.015 for BRTE
+#   p < 0.001 for shannon; p = 0.015 for BRTE
 
 # Boxplot
 model09.bp <- model09.matched |> 
@@ -2675,7 +2675,7 @@ p_values12 <- model12.perm |>
   inner_join(model12.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values12 # p = 0.007 for annual grass; p < 0.001 for perennial grass, 
+p_values12 # p = 0.007 for annual grass; p < 0.001 for perennial grass; 
 #     p = 0.004 for BRTE
 
 # Boxplot
@@ -3442,7 +3442,7 @@ p_values15 <- model15.perm |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
 p_values15 # p = 0.0011 for perennial grass; p = 0.04 for shannon;
-# p = 0.02 for Artemisia
+#   p = 0.02 for Artemisia
 
 # Boxplot
 model15.bp <- model15.matched |> 
@@ -5304,7 +5304,7 @@ model22.shannon <- model22.perm |>
              color = "red", linetype = "dashed", linewidth = 1) +
   labs(x = "Difference in means",
        y = "Frequency",
-       title = "Shannon diversity (*)") +
+       title = "Shannon diversity") +
   theme_bw(base_size = 10) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model22.shannon
@@ -5466,7 +5466,7 @@ model23.bp <- model23.matched |>
     xmax = 4.2, 
     annotations = c("*")
   ) +
-  ylim(0, 105) +
+  ylim(0, 100) +
   theme(legend.title = element_blank()) +
   theme(axis.text.x = element_text(color = "black")) +
   scale_x_discrete(
@@ -10117,7 +10117,7 @@ p_values42 <- model42.perm |>
   inner_join(model42.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values42 # p = 0.006 for shannon; p = 0.02 for BRRU2
+p_values42 # p = 0.007 for shannon; p = 0.02 for BRRU2
 
 # Boxplot
 model42.bp <- model42.matched |> 

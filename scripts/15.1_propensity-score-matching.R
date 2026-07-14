@@ -684,7 +684,7 @@ model05.comp <- avg_comparisons(
   vcov = ~subclass
 ) |> 
   mutate(Model = 5, .before = term)
-model05.comp # p = 0.013
+model05.comp # p = 0.014
 
 # Plot
 model05.plot <- model05.pred |>
@@ -3646,7 +3646,6 @@ model27.comp # p < 0.001
 
 # Plot
 model27.plot <- model27.pred |>
-  
   ggplot(aes(x = trt_control, y = estimate)) +
   geom_linerange(aes(ymin = conf.low, ymax = conf.high)) +
   geom_point(
