@@ -1202,7 +1202,7 @@ grid.arrange(
 # Filter for model
 model06.matched <- all.matched |> 
   filter(Model == 6) |> 
-  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover, 
+  select(LDCpointID, PrimaryKey, trt_control, Shannon, BRTE_cover, Artemisia_cover, PJ_cover,
          AnnForbCover_AH, AnnGramCover_AH, PerForbCover_AH, PerGramCover_AH, PerShrubCover_AH) |> 
   mutate(trt_control = factor(trt_control, levels = c("Control", "Prescribed burn")))
 
@@ -1225,7 +1225,8 @@ model06.matched <- model06.matched |>
              indicators == "PerShrubCover_AH" ~ "Shrub",
              indicators == "Shannon" ~ "Shannon diversity",
              indicators == "BRTE_cover" ~ "Bromus tectorum",
-             indicators == "Artemisia_cover" ~ "Artemisia"
+             indicators == "Artemisia_cover" ~ "Artemisia",
+             indicators == "PJ_cover" ~ "Pinus and Juniperus"
            )) |> 
   mutate(indicators = factor(indicators,
                              levels = c("Annual forb",
@@ -1235,7 +1236,8 @@ model06.matched <- model06.matched |>
                                         "Shrub",
                                         "Shannon diversity",
                                         "Bromus tectorum",
-                                        "Artemisia")))
+                                        "Artemisia",
+                                        "Pinus and Juniperus")))
 
 # Calculate observed mean difference
 model06.diff <- model06.matched |> 
@@ -1273,7 +1275,7 @@ p_values06 <- model06.perm |>
   inner_join(model06.diff, by = "indicators") |>
   group_by(indicators) |>
   summarize(p_value = mean(abs(mean_diff) >= abs(obs_diff[1])))
-p_values06 # p = 0.02 for shannon; p = 0.004 for Artemisia
+p_values06 # p = 0.02 for shannon; p = 0.005 for Artemisia
 
 # Boxplot
 model06.bp <- model06.matched |> 
@@ -1295,7 +1297,8 @@ model06.bp <- model06.matched |>
   theme(axis.text.x = element_text(color = "black")) +
   scale_x_discrete(
     labels = c("Bromus tectorum" = expression(italic("Bromus tectorum")),
-               "Artemisia" = expression(italic("Artemisia")))) +
+               "Artemisia" = expression(italic("Artemisia")),
+               "Pinus and Juniperus" = expression(italic("Pinus") ~ "&" ~ italic("Juniperus")))) +
   theme(plot.margin = margin(10, 10, 10, 10))
 model06.bp
 
@@ -1412,16 +1415,31 @@ model06.artemisia <- model06.perm |>
   theme(plot.margin = margin(10, 10, 10, 10))
 model06.artemisia
 
+#   Pinus and Juniperus
+model06.pj <- model06.perm |> 
+  filter(indicators == "Pinus and Juniperus") |> 
+  ggplot(aes(x = mean_diff)) +
+  geom_histogram(fill = "lightblue2", color = "black") +
+  geom_vline(xintercept = model06.diff$obs_diff[model06.diff$indicators == "Pinus and Juniperus"],
+             color = "red", linetype = "dashed", linewidth = 1) +
+  labs(x = "Difference in means",
+       y = "Frequency",
+       title = expression(italic("Pinus") ~ "&" ~ italic("Juniperus"))) +
+  theme_bw(base_size = 10) +
+  theme(plot.margin = margin(10, 10, 10, 10))
+model06.pj
+
 # Combine plots
 grid.arrange(
   model06.bp, model06.annforb, model06.anngrass,
   model06.perforb, model06.pergrass, model06.shrub,
   model06.shannon, model06.brte, model06.artemisia, 
+  model06.pj,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(2, 2, 3, 3, 4, 4),
     c(5, 5, 6, 6, 7, 7),
-    c(NA, 8, 8, 9, 9, NA)
+    c(8, 8, 9, 9, 10, 10)
   )
 )
 
@@ -10376,11 +10394,12 @@ grid.arrange(
   model06.bp, model06.annforb, model06.anngrass,
   model06.perforb, model06.pergrass, model06.shrub,
   model06.shannon, model06.brte, model06.artemisia, 
+  model06.pj,
   layout_matrix = rbind(
     c(1, 1, 1, 1, 1, 1),
     c(2, 2, 3, 3, 4, 4),
     c(5, 5, 6, 6, 7, 7),
-    c(NA, 8, 8, 9, 9, NA)
+    c(8, 8, 9, 9, 10, 10)
   )
 )
 dev.off()
