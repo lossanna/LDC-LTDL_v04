@@ -1,0 +1,75 @@
+PrimaryKey,trt_control,CurrentPLANTSCode,Scientific,GrowthHabit,GrowthHabitSub,Duration,Nonnative
+13052016230692112013-09-01,Post-burn closure,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+13052016230692112013-09-01,Post-burn closure,ALDE,Alyssum desertorum,NonWoody,Forb,Annual,EXOTIC
+13052016230692112013-09-01,Post-burn closure,ARTRW8,Artemisia tridentata var. wyomingensis,Woody,Shrub,Perennial,NATIVE
+13052016230692112013-09-01,Post-burn closure,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+13052016230692112013-09-01,Post-burn closure,CETE5,Ceratocephala testiculata,NonWoody,Forb,Annual,EXOTIC
+13052016230692112013-09-01,Post-burn closure,CHVI8,Chrysothamnus viscidiflorus,Woody,Shrub,Perennial,NATIVE
+13052016230692112013-09-01,Post-burn closure,COPA3,Collinsia parviflora,NonWoody,Forb,Annual,NATIVE
+13052016230692112013-09-01,Post-burn closure,DRVE2,Draba verna,NonWoody,Forb,Annual,EXOTIC
+13052016230692112013-09-01,Post-burn closure,GR,Graminoid,NonWoody,Graminoid,NA,NA
+13052016230692112013-09-01,Post-burn closure,PHLO2,Phlox longifolia,NonWoody,Forb,Perennial,NATIVE
+13052016230692112013-09-01,Post-burn closure,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+13052016230692112013-09-01,Post-burn closure,PPFF,Perennial forb,NonWoody,Forb,Perennial,NA
+13052016230692112013-09-01,Post-burn closure,VUOC,Vulpia octoflora,NonWoody,Graminoid,Annual,NATIVE
+19051816540882232019-09-01,Post-burn control,ALAL3,Alyssum alyssoides,NonWoody,Forb,Annual,EXOTIC
+19051816540882232019-09-01,Post-burn control,ARTRW8,Artemisia tridentata var. wyomingensis,Woody,Shrub,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+19051816540882232019-09-01,Post-burn control,ERNA10,Ericameria nauseosa,Woody,Shrub,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,GR,Graminoid,NonWoody,Graminoid,NA,NA
+19051816540882232019-09-01,Post-burn control,IPCO5,Ipomopsis congesta,NonWoody,Forb,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,KRLA2,Krascheninnikovia lanata,Woody,SubShrub,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,LECI4,Leymus cinereus,NonWoody,Graminoid,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,LIPU11,Linanthus pungens,Woody,SubShrub,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,PHHO,Phlox hoodii,NonWoody,Forb,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+19051816540882232019-09-01,Post-burn control,PSSP6,Pseudoroegneria spicata,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,ASPU9,Astragalus purshii,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,ASPU9,Astragalus purshii,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,DENU2,Delphinium nuttallianum,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,DENU2,Delphinium nuttallianum,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,ERNA10,Ericameria nauseosa,Woody,Shrub,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,ERNA10,Ericameria nauseosa,Woody,Shrub,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,LITE4,Lithophragma tenellum,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,LITE4,Lithophragma tenellum,NonWoody,Forb,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT-038_V12023-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,AGCR,Agropyron cristatum,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,PF05010,Perennial forb 05010,NonWoody,Forb,Perennial,NA
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,PF05010,Perennial forb 05010,NonWoody,Forb,Perennial,NA
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,PF05010,Perennial forb 05010,NonWoody,Forb,Perennial,NA
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POBU,Poa bulbosa,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POBU,Poa bulbosa,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POBU,Poa bulbosa,NonWoody,Graminoid,Perennial,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,TRDU,Tragopogon dubius,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,TRDU,Tragopogon dubius,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,TRDU,Tragopogon dubius,NonWoody,Forb,Annual,EXOTIC
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,VUOC,Vulpia octoflora,NonWoody,Graminoid,Annual,NATIVE
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,VUOC,Vulpia octoflora,NonWoody,Graminoid,Annual,NATIVE
+ID_BUFO_LUP_2021_NAT_018_V12022-09-01,Post-burn control,VUOC,Vulpia octoflora,NonWoody,Graminoid,Annual,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,AF02114,Annual forb 02114,NonWoody,Forb,Annual,NA
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,ARTRT,Artemisia tridentata ssp. tridentata,Woody,Shrub,Perennial,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,BRTE,Bromus tectorum,NonWoody,Graminoid,Annual,EXOTIC
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,CHVI8,Chrysothamnus viscidiflorus,Woody,Shrub,Perennial,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,GR,Graminoid,NonWoody,Graminoid,NA,NA
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,PASM,Pascopyrum smithii,NonWoody,Graminoid,Perennial,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,PHHO,Phlox hoodii,NonWoody,Forb,Perennial,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,POSE,Poa secunda,NonWoody,Graminoid,Perennial,NATIVE
+ID_USFO_LUP_2023_USFO2023-009_V12023-09-01,Post-burn control,SIAL2,Sisymbrium altissimum,NonWoody,Forb,Annual,EXOTIC
