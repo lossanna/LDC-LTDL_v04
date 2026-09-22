@@ -1,5 +1,5 @@
 # Created: 2026-07-16
-# Updated: 2026-08-06
+# Updated: 2026-09-22
 
 # Purpose: Examine treatment information cols for each model.
 
@@ -10,6 +10,7 @@ library(tidyverse)
 trt.info.raw <- read_csv("data/raw/Treatment_Info_R.csv")
 load("RData/15.1_matched-data.RData")
 trtpolyid <- read_csv("data/versions-from-R/11.1_TrtPolyID-for-treatment-info-v008.csv")
+all.matched <- read_csv("data/versions-from-R/17_all-matched-data_v012.csv")
 
 
 # NW Forested Mts / Western Cordillera ------------------------------------
@@ -1368,6 +1369,15 @@ write_csv(model42.trt,
 summary(model42.matched$MR_trt_comp)
 summary(model42.matched$DateVisited)
 
+
+
+# Count of treatment polygons across all models ---------------------------
+
+all.matched.trt <- trtpolyid |> 
+  filter(PrimaryKey %in% all.matched$PrimaryKey)
+
+length(unique(all.matched.trt$TrtPolyID))
+length(unique(all.matched$PrimaryKey))
 
 
 save.image("RData/21_extended-trt-info-for-42-models.RData")
