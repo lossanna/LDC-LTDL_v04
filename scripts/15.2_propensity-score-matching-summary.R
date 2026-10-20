@@ -148,9 +148,8 @@ gcomp.pred.0$EcoLvl2 <- str_to_title(gcomp.pred.0$EcoLvl2)
 gcomp.pred <- bind_rows(mget(ls(pattern = "\\.pred$")))
 
 # Add other cols
-gcomp.pred <- gcomp.pred |> 
-  left_join(gcomp.pred.0)
-gcomp.pred <- gcomp.pred[, c(1, 11, 2:10)]
+gcomp.pred <- gcomp.pred.0 |> 
+  left_join(gcomp.pred)
 
 # Add significance stars
 gcomp.pred <- gcomp.pred |> 
