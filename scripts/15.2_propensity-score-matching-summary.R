@@ -23,10 +23,11 @@ load("RData/15.1_average-treatment-effect.RData")
 # Create table of grouping cols
 count.table0 <- mget(ls(pattern = "\\.matched$")) |>
   bind_rows(.id = "Model") |> 
-  select(Model, EcoLvl3, trt_control) |> 
+  select(Model, EcoLvl2, EcoLvl3, trt_control) |> 
   distinct(.keep_all = TRUE) |> 
   filter(!trt_control %in% c("Control", "Post-burn control"))
 count.table0$Model <- str_extract(count.table0$Model, "\\d+") |> as.integer()
+count.table0$EcoLvl2 <- str_to_title(count.table0$EcoLvl2)
 
 # Add sample sizes from PSM
 count.table.psm <- count.table0 |> 
@@ -138,9 +139,10 @@ count.table.psm <- count.table0 |>
 # Create table of grouping cols
 gcomp.pred.0 <- mget(ls(pattern = "\\.matched$")) |>
   bind_rows(.id = "Model") |> 
-  select(Model, EcoLvl3, trt_control) |> 
-  distinct(.keep_all = TRUE)
+  select(Model, EcoLvl2, EcoLvl3, trt_control) |> 
+  distinct(.keep_all = TRUE) 
 gcomp.pred.0$Model <- str_extract(gcomp.pred.0$Model, "\\d+") |> as.integer()
+gcomp.pred.0$EcoLvl2 <- str_to_title(gcomp.pred.0$EcoLvl2)
 
 # Bind rows with values
 gcomp.pred <- bind_rows(mget(ls(pattern = "\\.pred$")))
@@ -171,9 +173,10 @@ gcomp.pred <- gcomp.pred |>
 # Create table of grouping cols
 avg.comp0 <- mget(ls(pattern = "\\.matched$")) |>
   bind_rows(.id = "Model") |> 
-  select(Model, EcoLvl3) |> 
+  select(Model, EcoLvl2, EcoLvl3) |> 
   distinct(.keep_all = TRUE)
 avg.comp0$Model <- str_extract(avg.comp0$Model, "\\d+") |> as.integer()
+avg.comp0$EcoLvl2 <- str_to_title(avg.comp0$EcoLvl2)
 
 # Bind rows with values
 avg.comp <- bind_rows(mget(ls(pattern = "\\.comp$")))
