@@ -1,5 +1,5 @@
 # Created: 2026-06-30
-# Updated: 2026-06-30
+# Updated: 2026-10-20
 
 # Purpose: Create summary tables of PSM results for the 42 models.
 
@@ -193,3 +193,17 @@ avg.comp <- avg.comp |>
   ), .before = s.value)
 
 
+
+# Write to CSV ------------------------------------------------------------
+
+# Count table
+write_csv(count.table.psm,
+          file = "data/versions-from-R/15.2_PSM-count-table.csv")
+
+# G computation
+write_csv(gcomp.pred,
+          file = "data/versions-from-R/15.2_g-computation-table.csv")
+
+# Average treatment effect
+write_csv(avg.comp,
+          file = "data/versions-from-R/15.2_average-treatment-effect-table.csv")

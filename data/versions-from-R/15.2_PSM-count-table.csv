@@ -1,0 +1,43 @@
+Model,EcoLvl3,trt_control,Control_n_before,Treated_n_before,Control_n_after,Treated_n_after
+1,Blue Mountains,Herbicide,438,110,188,97
+2,Blue Mountains,Post-burn herbicide,139,44,77,42
+3,Middle Rockies,Herbicide,1145,35,66,33
+4,Southern Rockies,Herbicide,1754,77,150,76
+5,Southern Rockies,Prescribed burn,1754,40,73,37
+6,Northwestern Great Plains,Prescribed burn,2177,52,102,51
+7,Snake River Plain,Post-burn aerial seeding,499,154,307,154
+8,Snake River Plain,Post-burn aerial & drill seeding,499,77,149,77
+9,Snake River Plain,Post-burn closure,499,87,165,87
+10,Snake River Plain,Post-burn drill seeding,499,43,85,43
+11,Snake River Plain,Post-burn herbicide,499,33,53,29
+12,Northern Basin and Range,Drill seeding,6180,77,150,76
+13,Northern Basin and Range,Drill seeding & soil disturbance,6180,62,121,61
+14,Northern Basin and Range,Herbicide,6180,260,513,259
+15,Northern Basin and Range,Prescribed burn,6180,160,316,159
+16,Northern Basin and Range,Vegetation disturbance,6180,104,198,102
+17,Northern Basin and Range,Post-burn aerial seeding,2126,562,1032,551
+18,Northern Basin and Range,Post-burn aerial & drill seeding,2126,89,173,88
+19,Northern Basin and Range,Post-burn closure,2126,151,296,151
+20,Northern Basin and Range,Post-burn drill seeding,2126,244,481,243
+21,Northern Basin and Range,Post-burn herbicide,2126,355,690,355
+22,Northern Basin and Range,Post-burn seedling planting,2126,56,112,56
+23,Central Basin and Range,Drill seeding & soil disturbance,7851,37,72,36
+24,Central Basin and Range,Prescribed burn,7851,33,62,31
+25,Central Basin and Range,Vegetation disturbance,7851,97,193,97
+26,Central Basin and Range,Post-burn aerial seeding,1375,454,663,367
+27,Central Basin and Range,Post-burn drill seeding,1375,122,230,120
+28,Central Basin and Range,Post-burn ground seeding,1375,41,75,41
+29,Central Basin and Range,Post-burn herbicide,1375,94,148,80
+30,Wyoming Basin,Prescribed burn,6370,38,74,37
+31,Colorado Plateaus,Aerial seeding & soil disturbance,4800,60,120,60
+32,Colorado Plateaus,Herbicide,4800,45,88,45
+33,Colorado Plateaus,Prescribed burn,4800,76,152,76
+34,Colorado Plateaus,Soil disturbance,4800,35,70,35
+35,Colorado Plateaus,Vegetation disturbance,4800,34,68,34
+36,Colorado Plateaus,Post-burn aerial seeding,351,64,94,58
+37,Arizona/New Mexico Plateau,Herbicide,1588,50,93,47
+38,Arizona/New Mexico Plateau,Prescribed burn,1588,31,54,27
+39,Arizona/New Mexico Plateau,Soil disturbance,1588,42,80,42
+40,Mojave Basin and Range,Post-burn aerial seeding,499,33,53,29
+41,Chihuahuan Desert,Herbicide,1455,64,128,64
+42,Arizona/New Mexico Mountains,Prescribed burn,213,37,55,29
