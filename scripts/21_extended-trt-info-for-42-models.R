@@ -1,10 +1,7 @@
 # Created: 2026-07-16
-# Updated: 2026-10-27
+# Updated: 2026-09-22
 
-# Purpose: Examine treatment information cols for each model, and calculate 
-#   total number of treatment polygons used for ultimate analysis of the 42 models.
-#   Also note that all LDC points used are from BLM AIM.
-
+# Purpose: Examine treatment information cols for each model.
 
 library(tidyverse)
 
@@ -1381,11 +1378,6 @@ all.matched.trt <- trtpolyid |>
 
 length(unique(all.matched.trt$TrtPolyID))
 length(unique(all.matched$PrimaryKey))
-
-
-# Project keys for LDC points ---------------------------------------------
-
-count(all.matched, ProjectKey)
 
 
 save.image("RData/21_extended-trt-info-for-42-models.RData")
