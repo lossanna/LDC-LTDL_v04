@@ -15,7 +15,11 @@ all.matched <- read_csv("data/versions-from-R/17_all-matched-data_v012.csv")
 
 # Count of LDC points -----------------------------------------------------
 
-length(unique(all.matched$PrimaryKey)) # 10,337
+nrow(all.matched) == length(unique(all.matched$PrimaryKey)) # some duplicate primary
+#   keys exist in all.matched because some LDC points were used as control points in
+#   more than one of the 42 models.
+
+length(unique(all.matched$PrimaryKey)) # 10,337 unique points
 
 
 # Origin of LDC points ----------------------------------------------------
